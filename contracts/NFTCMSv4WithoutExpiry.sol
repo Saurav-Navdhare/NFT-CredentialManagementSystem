@@ -107,14 +107,14 @@ contract FlexibleAcademicCredentialsCMS is
     }
 
     function registerManager(address _manager) external onlyAdmin {
-        require(!_checkRole(MANAGER_ROLE, _manager), "Already a manager");
+        require(!hasRole(MANAGER_ROLE, _manager), "Already a manager");
         grantRole(MANAGER_ROLE, _manager);
         emit ManagerRegistered(_manager);
     }
 
     function deregisterManager(address _manager) external onlyAdmin {
-        require(_checkRole(MANAGER_ROLE, _manager), "Not a manager");
-        require(!_checkRole(DEFAULT_ADMIN_ROLE, _manager), "Cannot deregister Admin");
+        require(hasRole(MANAGER_ROLE, _manager), "Not a manager");
+        require(!hasRole(DEFAULT_ADMIN_ROLE, _manager), "Cannot deregister Admin");
         revokeRole(MANAGER_ROLE, _manager);
         emit ManagerDeregistered(_manager);
     }
