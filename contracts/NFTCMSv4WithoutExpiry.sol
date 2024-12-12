@@ -41,7 +41,6 @@ contract FlexibleAcademicCredentialsCMS is
         address institution;
         CredentialStatus status;
         bytes32 ipfsHash;
-        bytes32 additionalMetadata;
         bool hasExpiration; // Flag to indicate if credential has an expiry
     }
 
@@ -70,7 +69,10 @@ contract FlexibleAcademicCredentialsCMS is
         CredentialStatus newStatus, 
         string reason
     );
-    event InstitutionRegistered(address indexed institution);
+    event InstitutionRegistered(address indexed institution, string indexed name);
+    event InstitutionDeregistered(address indexed institution);
+    event ManagerRegistered(address indexed manager);
+    event ManagerDeregistered(address indexed manager);
     event TimelockInitiated(bytes32 actionHash, uint256 executeTime);
 
     /// @custom:oz-upgrades-unsafe-allow constructor
@@ -89,6 +91,11 @@ contract FlexibleAcademicCredentialsCMS is
     }
 
     // Modifiers
+    modifier onlyAdmin(){
+        _checkRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        _;
+    }
+
     modifier onlyManager() {
         _checkRole(MANAGER_ROLE, msg.sender);
         _;
@@ -99,23 +106,48 @@ contract FlexibleAcademicCredentialsCMS is
         _;
     }
 
+    function registerManager(address _manager) external onlyAdmin {
+        require(!_checkRole(MANAGER_ROLE, _manager), "Already a manager");
+        grantRole(MANAGER_ROLE, _manager);
+        emit ManagerRegistered(_manager);
+    }
+
+    function deregisterManager(address _manager) external onlyAdmin {
+        require(_checkRole(MANAGER_ROLE, _manager), "Not a manager");
+        require(!_checkRole(DEFAULT_ADMIN_ROLE, _manager), "Cannot deregister Admin");
+        revokeRole(MANAGER_ROLE, _manager);
+        emit ManagerDeregistered(_manager);
+    }
+
     // Enhanced Institution Registration
-    function registerInstitutions(address[] memory _institutions) 
+    function registerInstitutions(address[] memory _institutions, string[] memory _names) 
         external 
         onlyManager 
     {
         for (uint i = 0; i < _institutions.length; i++) {
             grantRole(INSTITUTION_ROLE, _institutions[i]);
-            emit InstitutionRegistered(_institutions[i]);
+            emit InstitutionRegistered(_institutions[i], _names[i]);
         }
+    }
+
+    // Delist an institution by revoking the INSTITUTION_ROLE
+    function delistInstitution(address _institution) external onlyManager {
+        require(hasRole(INSTITUTION_ROLE, _institution), "Address is not a verified institution");
+        revokeRole(INSTITUTION_ROLE, _institution);
+        emit InstitutionDeregistered(_institution);
+    }
+
+    // Relist an institution by revoking the INSTITUTION_ROLE
+    function relistInstitution(address _institution) external onlyManager {
+        require(!hasRole(INSTITUTION_ROLE, _institution), "Address is already a verified institution");
+        grantRole(INSTITUTION_ROLE, _institution);
     }
 
     // Credential Issuance with Flexible Expiration
     function issueCredential(
         address _student,
         bytes32 _ipfsHash,
-        uint256 _validityPeriod, // 0 means no expiration
-        bytes32 _additionalMetadata
+        uint256 _validityPeriod // 0 means no expiration
     ) public onlyInstitution whenNotPaused {
         // Validate input parameters
         require(
@@ -139,7 +171,6 @@ contract FlexibleAcademicCredentialsCMS is
             institution: msg.sender,
             status: CredentialStatus.VALID,
             ipfsHash: _ipfsHash,
-            additionalMetadata: _additionalMetadata,
             hasExpiration: hasExpiration
         });
 
@@ -155,6 +186,7 @@ contract FlexibleAcademicCredentialsCMS is
     ) public onlyInstitution {
         Credential storage cred = credentials[_tokenId];
         require(cred.status == CredentialStatus.VALID, "Credential not valid");
+        require(cred.institution == msg.sender, "Unauthorized to revoke Credential! Only assigning institution can revoke credential");
         
         CredentialStatus previousStatus = cred.status;
         cred.status = CredentialStatus.REVOKED;
@@ -171,6 +203,7 @@ contract FlexibleAcademicCredentialsCMS is
     function updateCredentialStatus(uint256 _tokenId) public {
         Credential storage cred = credentials[_tokenId];
         require(cred.tokenId == _tokenId, "Credential does not exist");
+        require(cred.institution == msg.sender, "Unauthorized to revoke Credential! Only assigning institution can update credential status");
 
         // Only change status if:
         // 1. Credential has an expiration
@@ -209,20 +242,20 @@ contract FlexibleAcademicCredentialsCMS is
         return block.timestamp <= cred.expirationTimestamp;
     }
 
-    // Time-locked Administrative Action Preparation
-    function prepareTimelockAction(bytes32 _actionHash) public onlyManager {
-        _timelockActions[_actionHash] = block.timestamp + TIME_LOCK_PERIOD;
-        emit TimelockInitiated(_actionHash, _timelockActions[_actionHash]);
-    }
+    // // Time-locked Administrative Action Preparation
+    // function prepareTimelockAction(bytes32 _actionHash) public onlyManager {
+    //     _timelockActions[_actionHash] = block.timestamp + TIME_LOCK_PERIOD;
+    //     emit TimelockInitiated(_actionHash, _timelockActions[_actionHash]);
+    // }
 
-    // Verify Time-locked Action
-    function _verifyTimelockAction(bytes32 _actionHash) internal view {
-        require(
-            _timelockActions[_actionHash] != 0 && 
-            block.timestamp >= _timelockActions[_actionHash], 
-            "Timelock period not elapsed"
-        );
-    }
+    // // Verify Time-locked Action
+    // function _verifyTimelockAction(bytes32 _actionHash) internal view {
+    //     require(
+    //         _timelockActions[_actionHash] != 0 && 
+    //         block.timestamp >= _timelockActions[_actionHash], 
+    //         "Timelock period not elapsed"
+    //     );
+    // }
 
 
     // Internal helper function to verify token existence
