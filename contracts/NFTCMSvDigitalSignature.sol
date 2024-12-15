@@ -195,6 +195,7 @@ contract EnhancedAcademicCredentialsCMS is
     )   external
         returns (bool) {
         require(_isMinted(tokenId), "Token does not exist");
+        require(credentials[tokenId].status != CredentialStatus.INVALID, "The credential is already invalidated");
         bytes memory signature = credentials[tokenId].signature;
         address signer = credentials[tokenId].signer;
         bool isVerified = verifySignature(hash, signer, signature);
