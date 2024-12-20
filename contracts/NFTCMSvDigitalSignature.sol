@@ -3,16 +3,16 @@ pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
-import "@openzeppelin/contracts/security/ReentrancyGuard.sol"; // to avoid non reenterent while func execution
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol"; // to avoid non reenterent while func execution
 import "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
-import "@openzeppelin/contracts/utils/Counters.sol";
+// import "@openzeppelin/contracts/utils/Counters.sol";
 
-contract EnhancedAcademicCredentialsCMS is 
+contract NFTCMS is 
     Initializable, 
     ERC721Upgradeable, 
     AccessControlUpgradeable, 
@@ -22,9 +22,16 @@ contract EnhancedAcademicCredentialsCMS is
    
     using ECDSA for bytes32;
     using Address for address;
-    using Counters for Counters.Counter;
     
-    Counters.Counter private _tokenIds;
+    uint256 private _tokenId=0;
+
+    function incrementTokenId() internal {
+        _tokenId++;
+    }
+
+    function getCurrentTokenId() internal view returns(uint256) {
+        return _tokenId;
+    }
 
     // Role definitions
     bytes32 public constant MANAGER_ROLE = keccak256("MANAGER_ROLE");
@@ -40,8 +47,8 @@ contract EnhancedAcademicCredentialsCMS is
 
     enum CredentialStatus {
         VALID,
-        REVOKED,
-        INVALID
+        REVOKED
+        // INVALID
     }
 
     // Mapping of token IDs to credentials
@@ -86,7 +93,7 @@ contract EnhancedAcademicCredentialsCMS is
         __Pausable_init();
         __UUPSUpgradeable_init();
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
-        _grantRole(MANAGER_ROLE, msg.sender);
+        // _grantRole(MANAGER_ROLE, msg.sender);  // ERC721 does not have multiple-role support
     }
 
     // Modifiers
@@ -164,8 +171,8 @@ contract EnhancedAcademicCredentialsCMS is
         onlyInstitution
         whenNotPaused
         nonReentrant {
-        _tokenIds.increment();
-        uint256 newTokenId = _tokenIds.current();
+        incrementTokenId();
+        uint256 newTokenId = getCurrentTokenId();
         require(credentials[newTokenId].tokenId == 0, "Token ID already exists");
         require(_ipfsURIs[_ipfsURI]==0, "The IPFS URI is already issued for a credential");
         require(verifySignature(   // check signature before storing it into smart contract
@@ -195,35 +202,35 @@ contract EnhancedAcademicCredentialsCMS is
     )   external
         returns (bool) {
         require(_isMinted(tokenId), "Token does not exist");
-        require(credentials[tokenId].status != CredentialStatus.INVALID, "The credential is already invalidated");
+        // require(credentials[tokenId].status != CredentialStatus.INVALID, "The credential is already invalidated");
         bytes memory signature = credentials[tokenId].signature;
         address signer = credentials[tokenId].signer;
         bool isVerified = verifySignature(hash, signer, signature);
-        if(!isVerified){
-            credentials[tokenId].status = CredentialStatus.INVALID;
-        }
+        // if(!isVerified){
+        //     credentials[tokenId].status = CredentialStatus.INVALID;
+        // }
         return isVerified;
     }
 
     // Enhanced Revocation Mechanism
     function revokeCredential(
-        uint256 _tokenId, 
-        string memory _reason
+        uint256 tokenId, 
+        string memory reason
     )   public
         onlyInstitution
         nonReentrant {
-        require(_isMinted(_tokenId), "Token does not exist");
-        Credential storage cred = credentials[_tokenId];
-        require(cred.status == CredentialStatus.VALID, "Credential is already REVOKED or is INVALID");
+        require(_isMinted(tokenId), "Token does not exist");
+        Credential storage cred = credentials[tokenId];
+        require(cred.status == CredentialStatus.VALID, "Credential is already REVOKED");
         
         CredentialStatus previousStatus = cred.status;
         cred.status = CredentialStatus.REVOKED;
         
         emit CredentialStatusChanged(
-            _tokenId, 
+            tokenId, 
             previousStatus, 
             CredentialStatus.REVOKED, 
-            _reason
+            reason
         );
     }
 
