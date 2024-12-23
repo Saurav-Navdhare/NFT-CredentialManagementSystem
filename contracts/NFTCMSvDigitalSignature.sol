@@ -204,6 +204,7 @@ contract NFTCMS is
         uint256 tokenId,
         bytes32 hash
     )   external
+        view
         returns (bool) {
         require(_isMinted(tokenId), "Token does not exist");
         // require(credentials[tokenId].status != CredentialStatus.INVALID, "The credential is already invalidated");
