@@ -42,3 +42,4 @@ node_modules
 ignition/deployments/chain-31337
 
 secrets.txt
+/src/artifacts/
