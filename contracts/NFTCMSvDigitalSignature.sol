@@ -116,6 +116,8 @@ contract NFTCMS is
         external
         onlyAdmin {
         require(!hasRole(MANAGER_ROLE, _manager), "Address is already a manager");
+        require(!hasRole(INSTITUTION_ROLE, _manager), "Address is already an institution");
+        require(!hasRole(DEFAULT_ADMIN_ROLE, _manager), "Address is already an admin");
         grantRole(MANAGER_ROLE, _manager);
         emit ManagerRegistered(_manager);
     }
@@ -134,7 +136,9 @@ contract NFTCMS is
     function registerInstitution(address _institution) 
         external 
         onlyManager {
+        require(!hasRole(MANAGER_ROLE, _institution), "Address is already a manager");
         require(!hasRole(INSTITUTION_ROLE, _institution), "Address is already an institution");
+        require(!hasRole(DEFAULT_ADMIN_ROLE, _institution), "Address is already an admin");
         grantRole(INSTITUTION_ROLE, _institution);
         emit InstitutionRegistered(_institution);
     }
