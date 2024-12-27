@@ -13,6 +13,10 @@ This project is a blockchain-based credential management system that uses ERC721
 5. **Frontend Integration:** User-friendly interface powered by Thirdweb.
 
 ---
+### Illustration
+![Illustration](./Role_Functions.drawio.png)
+---
+
 
 ## Prerequisites
 
@@ -101,6 +105,7 @@ VITE_PINATA_API_KEY=
 VITE_PINATA_API_KEY=
 VITE_PINATA_JWT=
 GANACHE_PRIVATE_KEY=
+CARADONA_PRIVATE_KEY=
 CONTRACT_DEPLOYED_ADDRESS=
 ```
 

@@ -5,8 +5,8 @@ import DisplayMedia from './utils/DisplayMedia'
 import ClearIcon from '@mui/icons-material/Clear';
 import { Typography, TextField, Button } from '@mui/material';
 import { Bars } from 'react-loader-spinner';
-import uploadToIPFS from "./utils/uploadToIPFSToIPFS";
-import fetchAndHash from './utils/fetchAndhashndhash';
+import uploadToIPFS from "./utils/uploadToIPFS"
+import fetchAndHash from './utils/fetchAndHash';
 
 export default function UploadMedia({ classNames }) {
     UploadMedia.propTypes = {
@@ -48,7 +48,7 @@ export default function UploadMedia({ classNames }) {
     };
 
     const handleSubmit = async () => {
-        if (isBlockchainAddressValid(studentAddress)) {
+        if (isBlockchainAddressValid(studentAddress) && file.length !== 0) {
             setError('');
             setSuccess(false);
             setDisabled(true); // Disable fields and button

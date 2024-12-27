@@ -1,18 +1,15 @@
 import './App.css'
-import { client } from "./client";
-import { ConnectButton } from "thirdweb/react";
-import { createWallet } from "thirdweb/wallets"
-import UploadMedia from './components/utils/UploadMedia';
+import { createClient } from "./components/utils/client";
+import UploadMedia from './components/UploadMedia';
 import { ThemeProvider } from '@emotion/react';
 import { createTheme } from '@mui/material';
+import { useDispatch } from 'react-redux';
+import { setClient } from "./helpers/thirdWeb/thirdWebSlice";
+import CustomConnectButton from './components/CustomConnectButton';
 
 function App() {
-
-  const wallets = [
-    createWallet("io.metamask"),
-    createWallet("com.coinbase.wallet"),
-    createWallet("com.brave.wallet"),
-  ];
+  const dispatch = useDispatch()
+  dispatch(setClient(createClient()));
 
   const theme = createTheme({
     palette: {
@@ -32,10 +29,7 @@ function App() {
       <ThemeProvider theme={theme}>
         <div className="min-h-screen rounded-lg">
           <div>
-            <ConnectButton
-              client={client}
-              wallets={wallets}
-            />
+            <CustomConnectButton />
           </div>
           <div>
             <h1 className="text-3xl font-bold underline mb-5">Welcome to NFT CMS</h1>

@@ -21,5 +21,3 @@ async function fetchAndHash(url) {
 
 
 export default fetchAndHash;
-
-console.log(fetchAndHash("https://green-sudden-unicorn-197.mypinata.cloud/ipfs/bafybeiehv44yizbanag7djlirdzww43vp2z6jnhjfawuwottowvklnlbom"))
