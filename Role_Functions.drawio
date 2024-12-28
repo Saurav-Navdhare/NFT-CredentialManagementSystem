@@ -1,6 +1,6 @@
-<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:133.0) Gecko/20100101 Firefox/133.0" version="26.0.0">
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:133.0) Gecko/20100101 Firefox/133.0" version="26.0.1">
   <diagram name="Page-1" id="zQXNZp2tmuphY5DggkCo">
-    <mxGraphModel dx="1767" dy="752" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" background="#ffffff" math="0" shadow="0">
+    <mxGraphModel dx="1290" dy="557" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" background="#ffffff" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -31,10 +31,10 @@
         <mxCell id="WLIiq2369XjiNaMM-h_b-7" value="&lt;div&gt;Register Institute&lt;/div&gt;&lt;div&gt;Revoke Institute&lt;br&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;labelBackgroundColor=none;fillColor=#FAE5C7;strokeColor=#0F8B8D;fontColor=#143642;" parent="1" vertex="1">
           <mxGeometry x="300" y="240" width="100" height="180" as="geometry" />
         </mxCell>
-        <mxCell id="WLIiq2369XjiNaMM-h_b-8" value="&lt;div&gt;Issue Credential&lt;/div&gt;&lt;div&gt;Revoke Credential&lt;br&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;labelBackgroundColor=none;fillColor=#FAE5C7;strokeColor=#0F8B8D;fontColor=#143642;" parent="1" vertex="1">
+        <mxCell id="WLIiq2369XjiNaMM-h_b-8" value="&lt;div&gt;Issue Credential&lt;/div&gt;&lt;div&gt;Revoke Credential&lt;/div&gt;&lt;div&gt;List all issued credentials&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;labelBackgroundColor=none;fillColor=#FAE5C7;strokeColor=#0F8B8D;fontColor=#143642;" parent="1" vertex="1">
           <mxGeometry x="440" y="240" width="100" height="180" as="geometry" />
         </mxCell>
-        <mxCell id="WLIiq2369XjiNaMM-h_b-9" value="No func (as of now)" style="rounded=1;whiteSpace=wrap;html=1;labelBackgroundColor=none;fillColor=#FAE5C7;strokeColor=#0F8B8D;fontColor=#143642;" parent="1" vertex="1">
+        <mxCell id="WLIiq2369XjiNaMM-h_b-9" value="View all owned credentials" style="rounded=1;whiteSpace=wrap;html=1;labelBackgroundColor=none;fillColor=#FAE5C7;strokeColor=#0F8B8D;fontColor=#143642;" parent="1" vertex="1">
           <mxGeometry x="580" y="250" width="100" height="180" as="geometry" />
         </mxCell>
         <mxCell id="4tUpPxw_oyzGbzYG_W01-10" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;labelBackgroundColor=none;strokeColor=#A8201A;fontColor=default;" parent="1" source="WLIiq2369XjiNaMM-h_b-11" target="WLIiq2369XjiNaMM-h_b-12" edge="1">
@@ -46,10 +46,7 @@
         <mxCell id="WLIiq2369XjiNaMM-h_b-12" value="&lt;div&gt;verify credential&lt;/div&gt;&lt;div&gt;verify signature&lt;br&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;labelBackgroundColor=none;fillColor=#FAE5C7;strokeColor=#0F8B8D;fontColor=#143642;" parent="1" vertex="1">
           <mxGeometry x="720" y="240" width="100" height="180" as="geometry" />
         </mxCell>
-        <mxCell id="WLIiq2369XjiNaMM-h_b-14" value="List all issued credentials" style="rounded=1;whiteSpace=wrap;html=1;labelBackgroundColor=none;fillColor=#FAE5C7;strokeColor=#0F8B8D;fontColor=#143642;" parent="1" vertex="1">
-          <mxGeometry x="440" y="450" width="100" height="180" as="geometry" />
-        </mxCell>
-        <mxCell id="WLIiq2369XjiNaMM-h_b-15" value="&lt;div&gt;View all owned credentials&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;accept reject document for verification&lt;br&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;labelBackgroundColor=none;fillColor=#FAE5C7;strokeColor=#0F8B8D;fontColor=#143642;" parent="1" vertex="1">
+        <mxCell id="WLIiq2369XjiNaMM-h_b-15" value="&lt;div&gt;accept reject document for verification&lt;br&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;labelBackgroundColor=none;fillColor=#FAE5C7;strokeColor=#0F8B8D;fontColor=#143642;" parent="1" vertex="1">
           <mxGeometry x="580" y="450" width="100" height="180" as="geometry" />
         </mxCell>
         <mxCell id="WLIiq2369XjiNaMM-h_b-18" value="&lt;div&gt;request document for verification&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;labelBackgroundColor=none;fillColor=#FAE5C7;strokeColor=#0F8B8D;fontColor=#143642;" parent="1" vertex="1">
