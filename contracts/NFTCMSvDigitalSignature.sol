@@ -120,7 +120,7 @@ contract NFTCMS is
         require(!hasRole(MANAGER_ROLE, _manager), "Address is already a manager");
         require(!hasRole(INSTITUTION_ROLE, _manager), "Address is already an institution");
         require(!hasRole(DEFAULT_ADMIN_ROLE, _manager), "Address is already an admin");
-        grantRole(MANAGER_ROLE, _manager);
+        _grantRole(MANAGER_ROLE, _manager);
         emit ManagerRegistered(_manager);
     }
 
@@ -130,7 +130,7 @@ contract NFTCMS is
     )   external
         onlyAdmin {
         require(hasRole(MANAGER_ROLE, _manager), "Address is not a manager");
-        revokeRole(MANAGER_ROLE, _manager);
+        _revokeRole(MANAGER_ROLE, _manager);
         emit ManagerRevoked(_manager,  reason);
     }
 
@@ -141,7 +141,7 @@ contract NFTCMS is
         require(!hasRole(MANAGER_ROLE, _institution), "Address is already a manager");
         require(!hasRole(INSTITUTION_ROLE, _institution), "Address is already an institution");
         require(!hasRole(DEFAULT_ADMIN_ROLE, _institution), "Address is already an admin");
-        grantRole(INSTITUTION_ROLE, _institution);
+        _grantRole(INSTITUTION_ROLE, _institution);
         emit InstitutionRegistered(_institution);
     }
 
@@ -151,7 +151,7 @@ contract NFTCMS is
     )   external
         onlyManager {
         require(hasRole(INSTITUTION_ROLE, _institution), "Address is not an institution");
-        revokeRole(INSTITUTION_ROLE, _institution);
+        _revokeRole(INSTITUTION_ROLE, _institution);
         emit InstitutionRevoked(_institution, reason);
     }
 
@@ -263,7 +263,7 @@ contract NFTCMS is
             uint256[] memory institutionCredentials = new uint256[](getCurrentTokenId());
             uint256 count = 0;
             for (uint256 i = 1; i <= getCurrentTokenId(); i++) {
-                if(credentials[i+1].signer == msg.sender){      // as tokenID starts from 1
+                if(credentials[i].signer == msg.sender){      // as tokenID starts from 1
                     institutionCredentials[count] = i;
                     count++;
                 }
