@@ -36,8 +36,8 @@ contract NFTCMS is
     }
 
     // Role definitions
-    bytes32 public constant MANAGER_ROLE = keccak256("MANAGER_ROLE");
-    bytes32 public constant INSTITUTION_ROLE = keccak256("INSTITUTION_ROLE");
+    bytes32 private constant MANAGER_ROLE = keccak256("MANAGER_ROLE");
+    bytes32 private constant INSTITUTION_ROLE = keccak256("INSTITUTION_ROLE");
 
     struct Credential {
         uint256 tokenId;
