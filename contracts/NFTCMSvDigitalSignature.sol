@@ -1,22 +1,24 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
+// import "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721EnumerableUpgradeable.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol"; // to avoid non reenterent while func execution
 import "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
+// import enumerable
 // import "@openzeppelin/contracts/utils/Counters.sol";
 
 contract NFTCMS is 
     Initializable, 
-    ERC721Upgradeable, 
     AccessControlUpgradeable, 
     PausableUpgradeable,
+    ERC721EnumerableUpgradeable,
     UUPSUpgradeable,
     ReentrancyGuard {
    
@@ -92,6 +94,7 @@ contract NFTCMS is
         __AccessControl_init();
         __Pausable_init();
         __UUPSUpgradeable_init();
+        __ERC721Enumerable_init();
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         // _grantRole(MANAGER_ROLE, msg.sender);  // ERC721 does not have multiple-role support
     }
@@ -239,6 +242,38 @@ contract NFTCMS is
         );
     }
 
+    function getOwnedCredentials(address owner) 
+        public 
+        view 
+        returns (uint256[] memory) {
+        uint256 balance = balanceOf(owner); // Number of tokens owned by the address
+        uint256[] memory ownedTokens = new uint256[](balance);
+
+        for (uint256 i = 0; i < balance; i++) {
+            ownedTokens[i] = tokenOfOwnerByIndex(owner, i);
+        }
+
+        return ownedTokens;
+    }
+
+    function getCredentialsIssuedByInstitution(address institution) 
+        public 
+        view
+        onlyInstitution() 
+        returns (uint256[] memory) {
+            uint256 balance = totalSupply();
+            uint256[] memory institutionCredentials = new uint256[](balance);
+            uint256 count = 0;
+            for (uint256 i = 0; i < balance; i++) {
+                if(credentials[i].signer == institution){
+                    institutionCredentials[count] = i;
+                    count++;
+                }
+            }
+            return institutionCredentials;
+    }
+
+
     // Internal helper function to verify token existence
     function _isMinted(uint256 tokenId)
         internal
@@ -281,8 +316,10 @@ contract NFTCMS is
     function supportsInterface(bytes4 interfaceId)
         public
         view
-        override(ERC721Upgradeable, AccessControlUpgradeable)
-        returns (bool) {
+        override(ERC721EnumerableUpgradeable, AccessControlUpgradeable)
+        returns (bool)
+    {
         return super.supportsInterface(interfaceId);
     }
+
 }
