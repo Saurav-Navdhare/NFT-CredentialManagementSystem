@@ -86,6 +86,7 @@ contract NFTCMS is
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
+        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _disableInitializers();
     }
 
@@ -95,8 +96,6 @@ contract NFTCMS is
         __Pausable_init();
         __UUPSUpgradeable_init();
         __ERC721Enumerable_init();
-        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
-        // _grantRole(MANAGER_ROLE, msg.sender);  // ERC721 does not have multiple-role support
     }
 
     // Modifiers
