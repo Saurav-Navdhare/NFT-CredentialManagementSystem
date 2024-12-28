@@ -258,7 +258,7 @@ contract NFTCMS is
     function getCredentialsIssuedByInstitution() 
         public 
         view
-        onlyInstitution() 
+        onlyInstitution
         returns (uint256[] memory) {
             uint256[] memory institutionCredentials = new uint256[](getCurrentTokenId());
             uint256 count = 0;
