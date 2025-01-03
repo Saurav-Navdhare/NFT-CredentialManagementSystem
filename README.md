@@ -1,4 +1,4 @@
-# Academic Credentials NFT Project
+# NFT based Credentials Management System
 
 This project is a blockchain-based credential management system that uses ERC721 NFTs to represent academic certificates. The smart contract is implemented with Hardhat and OpenZeppelin libraries, and the frontend is built with Thirdweb for seamless interaction with the blockchain.
 

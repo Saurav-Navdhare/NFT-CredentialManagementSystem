@@ -7,7 +7,17 @@ const CARADONA_PRIVATE_KEY = process.env.CARADONA_PRIVATE_KEY;
 module.exports = {
   solidity: "0.8.27",
   paths: {
-    artifacts: "./src/artifacts",
+    artifacts: "./client/src/artifacts",
+  },
+  settings: {
+
+    optimizer: {
+
+      enabled: true,
+
+      runs: 1000
+
+    }
   },
   networks: {
     ganache: {

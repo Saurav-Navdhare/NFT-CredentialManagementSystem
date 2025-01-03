@@ -177,15 +177,16 @@ contract NFTCMS is
         onlyInstitution
         whenNotPaused
         nonReentrant {
-        incrementTokenId();
-        uint256 newTokenId = getCurrentTokenId();
-        require(credentials[newTokenId].tokenId == 0, "Token ID already exists");
         require(_ipfsURIs[_ipfsURI]==0, "The IPFS URI is already issued for a credential");
         require(verifySignature(   // check signature before storing it into smart contract
             _hash,
             msg.sender,
             _signature
         ), "Invalid signature");
+        incrementTokenId();
+        uint256 newTokenId = getCurrentTokenId();
+        require(credentials[newTokenId].tokenId == 0, "Token ID already exists");
+
 
 
         credentials[newTokenId] = Credential({

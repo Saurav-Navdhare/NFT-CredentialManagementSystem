@@ -28,7 +28,7 @@ node_modules
 
 # Hardhat files
 /cache
-/artifacts
+/src/artifacts/*
 
 # TypeChain files
 /typechain
@@ -42,5 +42,5 @@ node_modules
 ignition/deployments/chain-31337
 
 secrets.txt
-/client/src/artifacts/
+/src/artifacts/
 /ignition/deployments/
