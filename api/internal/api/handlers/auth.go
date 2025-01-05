@@ -1,7 +1,7 @@
-package controllers
+package handlers
 
 import (
-	"api/utils"
+	"api/pkg/utils"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"

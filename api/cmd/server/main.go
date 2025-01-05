@@ -1,8 +1,8 @@
 package main
 
 import (
-	"api/initializers"
-	"api/routes"
+	"api/internal/api"
+	"api/internal/initializers"
 	"github.com/gin-gonic/gin"
 	"log"
 )
@@ -16,7 +16,7 @@ func main() {
 
 	r := gin.Default()
 
-	routes.SetupRoutes(r)
+	api.SetupRoutes(r)
 
 	err := r.Run(":8080")
 	if err != nil {

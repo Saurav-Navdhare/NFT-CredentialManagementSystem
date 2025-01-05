@@ -1,7 +1,7 @@
 package utils
 
 import (
-	"api/customErrors"
+	"api/internal/customErrors"
 	"fmt"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"

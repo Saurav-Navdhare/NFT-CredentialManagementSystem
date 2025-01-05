@@ -1,7 +1,7 @@
 package utils
 
 import (
-	"api/initializers"
+	"api/internal/initializers"
 	"context"
 	"errors"
 	"fmt"
