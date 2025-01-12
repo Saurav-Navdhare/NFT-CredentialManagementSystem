@@ -14,14 +14,19 @@ This project is a blockchain-based credential management system that uses ERC721
 
 ---
 ### Illustration
-![Illustration](./Role_Functions.drawio.png)
 ---
-
+####  Illustration of Complete Project
+![Illustration of Complete Project](./Role_Functions.drawio.png)
+---
+#### Off-chain server sequence diagram 
+![Off-chain server sequence diagram](./Off-Chain%20Server%20Sequence%20Diagram.png)
+---
 
 ## Prerequisites
 
 ### Tools Required:
 - **Node.js**: [Download here](https://nodejs.org/).
+- **Golang**: For backend off-chain server
 - **Hardhat**: For smart contract development.
 - **Thirdweb SDK**: For frontend blockchain interactions.
 

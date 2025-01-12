@@ -10,6 +10,7 @@ import (
 func init() {
 	initializers.LoadENV()
 	initializers.InitRedis()
+	initializers.InitDB()
 }
 
 func main() {
@@ -18,7 +19,7 @@ func main() {
 
 	api.SetupRoutes(r)
 
-	err := r.Run(":8080")
+	err := r.Run()
 	if err != nil {
 		log.Fatalf(err.Error())
 	}
