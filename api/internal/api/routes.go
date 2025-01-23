@@ -16,10 +16,11 @@ func SetupRoutes(router *gin.Engine) {
 		}
 		requestGroup := version.Group("/requests")
 		{
-			requestGroup.Use(middleware.NonceAuthMiddleware())
+			requestGroup.Use(middleware.SessionMiddleware())
+			requestGroup.GET("/", handlers.GetRequests)
 			requestGroup.POST("/create", handlers.CreateRequest)
-			requestGroup.POST("/approve", handlers.ApproveRequest)
-			requestGroup.POST("/deny", handlers.RejectRequest)
+			requestGroup.POST("/respond", handlers.RespondRequest)
+			requestGroup.GET("/:request_id", handlers.GetRequest)
 		}
 	}
 }

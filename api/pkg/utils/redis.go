@@ -6,16 +6,16 @@ import (
 	"time"
 )
 
-func StoreInRedis(key, value string) error {
+func StoreInRedis(key, value string, minutes int) error {
 	var ctx = context.Background()
-	cmd := initializers.RDB.Set(ctx, key, value, 5*time.Minute)
+	cmd := initializers.RedisClient.Set(ctx, key, value, time.Duration(minutes)*time.Minute)
 	return cmd.Err()
 }
 
 func RetrieveFromRedis(key string) (string, error) {
 	// retrieve from redis
 	var ctx = context.Background()
-	value, err := initializers.RDB.Get(ctx, key).Result()
+	value, err := initializers.RedisClient.Get(ctx, key).Result()
 	if err != nil {
 		return "", err
 	}
@@ -24,6 +24,6 @@ func RetrieveFromRedis(key string) (string, error) {
 
 func DeleteFromRedis(key string) error {
 	var ctx = context.Background()
-	cmd := initializers.RDB.Del(ctx, key)
+	cmd := initializers.RedisClient.Del(ctx, key)
 	return cmd.Err()
 }

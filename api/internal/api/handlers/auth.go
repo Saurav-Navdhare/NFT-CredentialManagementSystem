@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"api/internal/customErrors"
+	"api/pkg/constants"
 	"api/pkg/utils"
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/gin-gonic/gin"
@@ -9,25 +10,21 @@ import (
 )
 
 func GenerateAndStoreNonce(c *gin.Context) {
-	id := utils.GetNonce()
-	var data struct {
-		WalletAddress string `json:"wallet_address"`
-	}
-	if err := c.BindJSON(&data); err != nil {
-		panic(customErrors.ErrInsufficientData)
-		return
-	}
-	walletAddress := data.WalletAddress
+	walletAddress := c.GetHeader("Wallet-Address")
 	if walletAddress == "" {
-		panic(customErrors.ErrInsufficientData)
+		panic(customErrors.ErrNoWalletAddressHeader)
 		return
 	}
-	err := utils.StoreInRedis(walletAddress, id)
+
+	id := utils.GetNonce()
+	err := utils.StoreInRedis(walletAddress, id, constants.NonceTokenTimeout)
+
 	if err != nil {
 		log.Error("Error storing in Redis", "error", err)
 		panic(customErrors.ErrInternalServer)
 		return
 	}
+
 	c.JSON(http.StatusOK, gin.H{
 		"id": id,
 	})

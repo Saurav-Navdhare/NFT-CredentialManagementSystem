@@ -6,9 +6,9 @@ import (
 	"api/internal/models"
 	"api/internal/repository"
 	"encoding/json"
+	"fmt"
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/gin-gonic/gin"
-	"github.com/holiman/uint256"
 	"net/http"
 	"time"
 )
@@ -39,64 +39,62 @@ func CreateRequest(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{"message": "Request created successfully", "request_id": request.ID})
 }
 
-func GetVerifierPendingRequests(c *gin.Context) {
-	walletAddress := c.Query("wallet_address")
-	if walletAddress == "" {
-		log.Error("Insufficient data")
-		panic(customErrors.ErrInsufficientData)
-		return
-	}
-	var requests []models.Request
-	if err := initializers.DB.Find(&requests, "recipient_wallet = ? AND status = ?", walletAddress, "pending").Error; err != nil {
-		log.Error("Failed to get requests: ", err)
-		panic(customErrors.ErrInternalServer)
-		return
-	}
-}
-
-func GetVerifierApprovedRequests(c *gin.Context) {
-	walletAddress := c.Query("wallet_address")
-	if walletAddress == "" {
-		log.Error("Insufficient data")
-		panic(customErrors.ErrInsufficientData)
-		return
-	}
-	var requests []models.Request
-	if err := initializers.DB.Find(&requests, "recipient_wallet = ? AND status = ? AND expiry_timestamp > ?", walletAddress, "approved", time.Now()).Error; err != nil {
-		log.Error("Failed to get requests: ", err)
-		panic(customErrors.ErrInternalServer)
-		return
-	}
-}
-
-func GetVerifierTranscriptList(c *gin.Context) {
-	requestID := c.Param("request_id")
-	var request models.Request
-	if err := initializers.DB.First(&request, "id = ?", requestID).Error; err != nil {
-		log.Error("Request not found: ", err)
-		panic(customErrors.ErrRequestNotFound)
-		return
-	}
-
-	if request.Status != "approved" {
-		log.Error("Request is not in an approved state")
-		panic(customErrors.ErrRequestNotPending)
-		return
-	}
-
-	var transcriptList []uint256.Int
-	if err := json.Unmarshal([]byte(request.TranscriptList), &transcriptList); err != nil {
-		log.Error("Failed to unmarshal transcript list: ", err)
-		panic(customErrors.ErrFailedToConvertJSON)
-		return
-	}
-
-}
+//func GetVerifierRequests(c *gin.Context) {
+//	walletAddress := c.GetHeader("Wallet-Address")
+//	if walletAddress == "" {
+//		log.Error("Insufficient data")
+//		panic(customErrors.ErrInsufficientData)
+//		return
+//	}
+//
+//	requestStatus := c.Query("request_status")
+//	var requests []models.Request
+//	query := initializers.DB.Where("recipient_wallet = ?", walletAddress)
+//
+//	if requestStatus != "" {
+//		query = query.Where("status = ?", requestStatus)
+//	}
+//
+//	if err := query.Find(&requests).Error; err != nil {
+//		log.Error("Failed to get requests: ", err)
+//		panic(customErrors.ErrInternalServer)
+//		return
+//	}
+//
+//	c.JSON(http.StatusOK, requests)
+//}
+//
+//func GetVerifierTranscriptList(c *gin.Context) {
+//	walletAddress := c.GetHeader("Wallet-Address")
+//	requestID := c.Param("request_id")
+//	var request models.Request
+//
+//	if err := initializers.DB.First(&request, "id = ? AND recipient_wallet = ?", requestID, walletAddress).Error; err != nil {
+//		log.Error("Request not found or wallet address mismatch: ", err)
+//		panic(customErrors.ErrRequestNotFound)
+//		return
+//	}
+//
+//	if request.Status != models.Approved {
+//		log.Error("Request is not in an approved state")
+//		panic(customErrors.ErrRequestNotApproved)
+//		return
+//	}
+//
+//	var transcriptList []uint256.Int
+//	if err := json.Unmarshal([]byte(request.TranscriptList), &transcriptList); err != nil {
+//		log.Error("Failed to unmarshal transcript list: ", err)
+//		panic(customErrors.ErrFailedToConvertJSON)
+//		return
+//	}
+//
+//}
 
 // Student Handlers
 
-func ApproveRequest(c *gin.Context) {
-	var input repository.ApproveRequestInput
+func RespondRequest(c *gin.Context) {
+	walletAddress := c.GetHeader("Wallet-Address")
+	var input repository.RespondRequestInput
 	if err := c.ShouldBindJSON(&input); err != nil {
 		log.Error("Binding error: ", err)
 		panic(customErrors.ErrInsufficientData)
@@ -104,7 +102,7 @@ func ApproveRequest(c *gin.Context) {
 	}
 
 	var request models.Request
-	if err := initializers.DB.First(&request, "id = ?", input.RequestID).Error; err != nil {
+	if err := initializers.DB.First(&request, "id = ? AND student_wallet = ?", input.RequestID, walletAddress).Error; err != nil {
 		log.Error("Request not found: ", err)
 		panic(customErrors.ErrRequestNotFound)
 		return
@@ -116,78 +114,58 @@ func ApproveRequest(c *gin.Context) {
 		return
 	}
 
-	request.Status = "approved"
-	transcriptListJSON, err := json.Marshal(input.TranscriptList)
-	if err != nil {
-		log.Error("Failed to convert transcript list to JSON: ", err)
-		panic(customErrors.ErrFailedToConvertJSON)
-		return
+	if input.Response == repository.Accept {
+		request.Status = models.Approved
+		transcriptListJSON, err := json.Marshal(input.TranscriptList)
+		if err != nil {
+			log.Error("Failed to convert transcript list to JSON: ", err)
+			panic(customErrors.ErrFailedToConvertJSON)
+			return
+		}
+		request.TranscriptList = string(transcriptListJSON)
+	} else if input.Response == repository.Reject {
+		request.Status = models.Denied
 	}
-	request.TranscriptList = string(transcriptListJSON)
+
 	if err := initializers.DB.Save(&request).Error; err != nil {
 		log.Error("Failed to save request: ", err)
 		panic(customErrors.ErrFailedToSaveRequest)
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Request approved successfully"})
+	c.JSON(http.StatusOK, gin.H{"message": "Request responded successfully"})
 }
 
-func RejectRequest(c *gin.Context) {
-	var input repository.RejectRequestInput
+func GetRequest(c *gin.Context) {
+	walletAddress := c.GetHeader("Wallet-Address")
+	var input repository.GetWalletType
+	requestID := c.Param("request_id")
+	if err := c.ShouldBindJSON(&input); err != nil {
+		log.Error("Binding error: ", err)
+		panic(customErrors.ErrInvalidWalletType)
+		return
+	}
+	var request models.Request
+	if err := initializers.DB.First(&request, fmt.Sprintf("id = ? AND %v", input.WalletType), requestID, walletAddress).Error; err != nil {
+		log.Error("Request not found: ", err)
+		panic(customErrors.ErrRequestNotFound)
+		return
+	}
+	c.JSON(http.StatusOK, request)
+}
+
+func GetRequests(c *gin.Context) {
+	walletAddress := c.GetHeader("Wallet-Address")
+	var input repository.GetWalletType
 	if err := c.ShouldBindJSON(&input); err != nil {
 		log.Error("Binding error: ", err)
 		panic(customErrors.ErrInsufficientData)
 		return
 	}
-
-	var request models.Request
-	if err := initializers.DB.First(&request, "id = ?", input.RequestID).Error; err != nil {
-		log.Error("Request not found: ", err)
-		panic(customErrors.ErrRequestNotFound)
-		return
-	}
-
-	if request.Status != "pending" {
-		log.Error("Request is not in a pending state")
-		panic(customErrors.ErrRequestNotPending)
-		return
-	}
-
-	request.Status = "denied"
-	if err := initializers.DB.Save(&request).Error; err != nil {
-		log.Error("Failed to deny request: ", err)
-		panic(customErrors.ErrFailedToSaveRequest)
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{"message": "Request denied successfully"})
-}
-
-func GetRequest(c *gin.Context) {
-	requestID := c.Param("request_id")
-	var request models.Request
-	if err := initializers.DB.First(&request, "id = ?", requestID).Error; err != nil {
-		log.Error("Request not found: ", err)
-		panic(customErrors.ErrRequestNotFound)
-		return
-	}
-
-	c.JSON(http.StatusOK, request)
-}
-
-func GetRequests(c *gin.Context) {
-	walletAddress := c.Query("wallet_address")
-	if walletAddress == "" {
-		log.Error("Insufficient data")
-		panic(customErrors.ErrInsufficientData)
-		return
-	}
 	var requests []models.Request
-	if err := initializers.DB.Find(&requests, "student_wallet = ?", walletAddress).Error; err != nil {
+	if err := initializers.DB.Find(&requests, fmt.Sprintf("%v = ?", input.WalletType), walletAddress).Error; err != nil {
 		log.Error("Failed to get requests: ", err)
 		panic(customErrors.ErrInternalServer)
 		return
 	}
 }
-
