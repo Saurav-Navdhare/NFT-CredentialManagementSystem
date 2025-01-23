@@ -36,7 +36,7 @@ contract NFTCMS is
     }
 
     // Role definitions
-    bytes32 private constant MANAGER_ROLE = keccak256("MANAGER_ROLE");
+    bytes32 private constant MODERATOR_ROLE = keccak256("MODERATOR_ROLE");
     bytes32 private constant INSTITUTION_ROLE = keccak256("INSTITUTION_ROLE");
 
     struct Credential {
@@ -72,10 +72,10 @@ contract NFTCMS is
     );
     
     event InstitutionRegistered(address indexed institution);
-    event ManagerRegistered(address indexed manager);
+    event ModeratorRegistered(address indexed moderator);
 
-    event ManagerRevoked(
-        address indexed manager,
+    event ModeratorRevoked(
+        address indexed moderator,
         string reason
     );
 
@@ -104,8 +104,8 @@ contract NFTCMS is
         _;
     }
 
-    modifier onlyManager() {
-        _checkRole(MANAGER_ROLE, msg.sender);
+    modifier onlyModerator() {
+        _checkRole(MODERATOR_ROLE, msg.sender);
         _;
     }
 
@@ -114,31 +114,31 @@ contract NFTCMS is
         _;
     }
 
-    function registerManager(address _manager)
+    function registerModerator(address _moderator)
         external
         onlyAdmin {
-        require(!hasRole(MANAGER_ROLE, _manager), "Address is already a manager");
-        require(!hasRole(INSTITUTION_ROLE, _manager), "Address is already an institution");
-        require(!hasRole(DEFAULT_ADMIN_ROLE, _manager), "Address is already an admin");
-        _grantRole(MANAGER_ROLE, _manager);
-        emit ManagerRegistered(_manager);
+        require(!hasRole(MODERATOR_ROLE, _moderator), "Address is already a moderator");
+        require(!hasRole(INSTITUTION_ROLE, _moderator), "Address is already an institution");
+        require(!hasRole(DEFAULT_ADMIN_ROLE, _moderator), "Address is already an admin");
+        _grantRole(MODERATOR_ROLE, _moderator);
+        emit ModeratorRegistered(_moderator);
     }
 
-    function revokeManager(
-        address _manager,
+    function revokeModerator(
+        address _moderator,
         string memory reason
     )   external
         onlyAdmin {
-        require(hasRole(MANAGER_ROLE, _manager), "Address is not a manager");
-        _revokeRole(MANAGER_ROLE, _manager);
-        emit ManagerRevoked(_manager,  reason);
+        require(hasRole(MODERATOR_ROLE, _moderator), "Address is not a moderator");
+        _revokeRole(MODERATOR_ROLE, _moderator);
+        emit ModeratorRevoked(_moderator,  reason);
     }
 
     // Institution Registration
     function registerInstitution(address _institution) 
         external 
-        onlyManager {
-        require(!hasRole(MANAGER_ROLE, _institution), "Address is already a manager");
+        onlyModerator {
+        require(!hasRole(MODERATOR_ROLE, _institution), "Address is already a moderator");
         require(!hasRole(INSTITUTION_ROLE, _institution), "Address is already an institution");
         require(!hasRole(DEFAULT_ADMIN_ROLE, _institution), "Address is already an admin");
         _grantRole(INSTITUTION_ROLE, _institution);
@@ -149,7 +149,7 @@ contract NFTCMS is
         address _institution,
         string memory reason
     )   external
-        onlyManager {
+        onlyModerator {
         require(hasRole(INSTITUTION_ROLE, _institution), "Address is not an institution");
         _revokeRole(INSTITUTION_ROLE, _institution);
         emit InstitutionRevoked(_institution, reason);
@@ -297,18 +297,18 @@ contract NFTCMS is
     }
 
     // Pausability Functions
-    function pause() external onlyManager {
+    function pause() external onlyModerator {
         _pause();
     }
 
-    function unpause() external onlyManager {
+    function unpause() external onlyModerator {
         _unpause();
     }
 
     // UUPS Upgradeable Authorization
     function _authorizeUpgrade(address newImplementation)
         internal
-        onlyManager
+        onlyModerator
         override {}
 
     // Interface Support
