@@ -16,12 +16,104 @@ This project is a blockchain-based credential management system that uses ERC721
 ### Illustration
 ---
 ####  Illustration of Complete Project
-![Illustration of Complete Project](./Role_Functions.drawio.png)
+<!--![Illustration of Complete Project](./Role_Functions.drawio.png)-->
+
+```mermaid
+   flowchart TD
+       A[admin]
+       B[moderator]
+       C[institute]
+       D[student]
+       E["Any account"]
+   
+       subgraph Roles & Functionality
+       A --> F["Register Moderator
+               Revoke Moderator"]
+       B --> G["Register Institute
+               Revoke Institute"]
+       C --> H["Issue Credential
+               Revoke Credential
+               List all issued credentials"]
+       D --> I["View all owned credentials"]
+       D --> K["accept/reject document for verification"]
+       E --> J["verify credential
+               verify signature"]
+       E --> L["request document for verification"]
+       end
+```
 ---
 #### Off-chain server sequence diagram 
 <!-- ![Off-chain server sequence diagram](./Off-Chain%20Server%20Sequence%20Diagram.png) -->
+```mermaid
+   sequenceDiagram
+       autonumber
+       participant Client
+       participant GoGinAPI
+       participant Redis
+       participant PostgreSQL
+   
+       Client->>GoGinAPI: GET /v1/auth/generate-nonce
+       GoGinAPI->>Redis: Store nonce with wallet address
+       Redis-->>GoGinAPI: Nonce stored
+       GoGinAPI-->>Client: Respond with nonce
+   
+       Client->>Client: Sign nonce with Web3 wallet
+       Client->>GoGinAPI: Request with signed nonce in header
+       GoGinAPI->>Redis: Retrieve nonce for wallet
+       Redis-->>GoGinAPI: Return nonce
+       GoGinAPI->>GoGinAPI: Verify digital signature
+       alt Signature valid
+           GoGinAPI->>Redis: Create and store session
+           Redis-->>GoGinAPI: Session stored
+           GoGinAPI-->>Client: Respond with session ID
+       else Signature invalid
+           GoGinAPI-->>Client: Respond with error
+       end
+   
+       Note over Client,GoGinAPI: User authenticated
+   
+       alt Accessing /v1/requests/create or /v1/requests/respond
+           alt No valid session
+               Client->>GoGinAPI: GET /v1/auth/generate-nonce
+               GoGinAPI->>Redis: Store new nonce with wallet address
+               Redis-->>GoGinAPI: Nonce stored
+               GoGinAPI-->>Client: Respond with new nonce
+               Client->>Client: Sign new nonce with Web3 wallet
+               Client->>GoGinAPI: Request with newly signed nonce in header
+               GoGinAPI->>Redis: Retrieve new nonce for wallet
+               Redis-->>GoGinAPI: Return new nonce
+               GoGinAPI->>GoGinAPI: Verify new digital signature
+               GoGinAPI->>Redis: Create and store new session
+               Redis-->>GoGinAPI: New session stored
+           end
+           
+           alt Accessing /v1/requests/create
+               Client->>GoGinAPI: POST /v1/requests/create
+               GoGinAPI->>PostgreSQL: Perform requested operation
+               PostgreSQL-->>GoGinAPI: Operation result
+               GoGinAPI-->>Client: Respond with result
+           else Accessing /v1/requests/respond
+               Client->>GoGinAPI: POST /v1/requests/respond
+               GoGinAPI->>PostgreSQL: Perform requested operation
+               PostgreSQL-->>GoGinAPI: Operation result
+               GoGinAPI-->>Client: Respond with result
+           end
+       else Accessing other routes
+           Client->>GoGinAPI: Request with session ID
+           GoGinAPI->>Redis: Verify session
+           Redis-->>GoGinAPI: Session valid
+           GoGinAPI->>PostgreSQL: Perform requested operation
+           PostgreSQL-->>GoGinAPI: Operation result
+           GoGinAPI-->>Client: Respond with result
+       end
+   
+       Note over GoGinAPI,PostgreSQL: Handle automatic expiry
+       GoGinAPI->>PostgreSQL: Query expired requests periodically
+       PostgreSQL-->>GoGinAPI: Return expired requests
+       GoGinAPI->>PostgreSQL: Update expired requests to "revoked"
+       PostgreSQL-->>GoGinAPI: Update successful
+```
 
-[![Off-chain server sequence diagram](https://mermaid.ink/img/pako:eNrVV21v2zYQ_isEgQIZICeO7cSOPhQomiEzMKSpvaxAYSBgpYtNVCI1kkrqBfnvO4mSZb3ZUjpgWD-l1HPHu-deHvqFetIH6tJ374iGv2IQHlxztlYsXAk8S_6x2EgRh99A7Y4ipgz3eMSEIR8DDsI0frqRN1x8uJs3fryT2qwVLD__vhI7gHU2eP8-N3XJ3aflH-QMg9icCYnh7bA5ZIBwa-eSBehICp88c7MhZfjOdY5d8rWwGAv_At_G5JkFAZiO8TyB4o9bcpI6cYhGh8zECn5pjLFI2CV_Wkt7GzlRYBSHJyAMYw-Z8TaE-b4CrQtXhfmgFM8C8EpBEBwHpjs5aezcY4bLwnhnfisNEImYjAGnuO9e42mSPh4n9uB3qZ9KmksbfeYpQBtyok3sI_TBUuBgCNgXfP8EfkRcbR9CLmIDuoHTMqVzgYEZkl1kk7y_n1_njojhIX5gYdSBUuvDxup3JzW_fH6dVhJvM7HuRuvS8kFYFClEaCIVwQOOfyHVuedeVGeukvZKTx647xCjmNCe4pF5CLg2R2m9j_ykXnlmNiViJFnRzL-_okcZzbzo2POwqR_joDunmQ3B4mm2hl4MIIHb_fR_Jtu0GP9ZrkXn5E6c_bh_w3YLIF3VuD64l_X8sXQ_x4CDkWLBz7PWJMLdIH0c7iDYdt0_VScdma7dnXKt4El-fyvZNR2rilibgrXLV_XLAnyu68dlSWtp0ZtfsUOfzq2CrEGAwgQGmVZVCEvvSXaDVLAvVZluZBphzVJsmZzb1EIn1n7F9xHNrETfSTJb8l3sL-REIrHa1gUXZAPMz0tSz3uRy6LFP-JK3L-sIeOsGZvZLGCZ_Pp8zQ0LCuHOeiUwaabpEXliAc_Ya47yo1U0u_CTQmmsCapqYdMQ6NJiSsXptiIyw_m1NYJAw160XLTF2-YQlJJZBUD4eel7PwBy4j6kg8jFOm3yquxjBUvHykZShJu4uJWW9DqRbx2p9uJlowXPx8brQC3rY9aZ_N3FLTmWB68cZW34DjBUGkL0E2wPjmI7X8VI7oKpjuUBpvLxbM760KgmJi3j2mMyEy-NTdVU1QJbqy3st2y5eQ_2_9E62ffLMcMWSb0DhbUIcy3F4sooGYVatm1i-imH734Q9GrmqlG6mlr4qA1-Z0IaLf8vjORxV6iRuEwVUTL5oVOgj4ppRQqahyAboD6i1C55vcntT2wvUhsVq98L-Wefx296G_8LD-Ner2Lq0BBUyLhPXfqSGK8o9lwIK-omv22Y-p74fEVcwtByKzzqGhWDQ7Er1xvqPjJsWYfGqefsaZ1D8PH7VcpwB8L_U_eF_qDu4Hx6MTsdTaZXo8lsOLmcTS8cuqXuaDw7nYxG4-nsYjIcjq-Gl68O_Tv1MTodX14Or6YX51cjtB6Px6__AB8ZB9U?type=png)](https://mermaid.live/edit#pako:eNrVV21v2zYQ_isEgQIZICeO7cSOPhQomiEzMKSpvaxAYSBgpYtNVCI1kkrqBfnvO4mSZb3ZUjpgWD-l1HPHu-deHvqFetIH6tJ374iGv2IQHlxztlYsXAk8S_6x2EgRh99A7Y4ipgz3eMSEIR8DDsI0frqRN1x8uJs3fryT2qwVLD__vhI7gHU2eP8-N3XJ3aflH-QMg9icCYnh7bA5ZIBwa-eSBehICp88c7MhZfjOdY5d8rWwGAv_At_G5JkFAZiO8TyB4o9bcpI6cYhGh8zECn5pjLFI2CV_Wkt7GzlRYBSHJyAMYw-Z8TaE-b4CrQtXhfmgFM8C8EpBEBwHpjs5aezcY4bLwnhnfisNEImYjAGnuO9e42mSPh4n9uB3qZ9KmksbfeYpQBtyok3sI_TBUuBgCNgXfP8EfkRcbR9CLmIDuoHTMqVzgYEZkl1kk7y_n1_njojhIX5gYdSBUuvDxup3JzW_fH6dVhJvM7HuRuvS8kFYFClEaCIVwQOOfyHVuedeVGeukvZKTx647xCjmNCe4pF5CLg2R2m9j_ykXnlmNiViJFnRzL-_okcZzbzo2POwqR_joDunmQ3B4mm2hl4MIIHb_fR_Jtu0GP9ZrkXn5E6c_bh_w3YLIF3VuD64l_X8sXQ_x4CDkWLBz7PWJMLdIH0c7iDYdt0_VScdma7dnXKt4El-fyvZNR2rilibgrXLV_XLAnyu68dlSWtp0ZtfsUOfzq2CrEGAwgQGmVZVCEvvSXaDVLAvVZluZBphzVJsmZzb1EIn1n7F9xHNrETfSTJb8l3sL-REIrHa1gUXZAPMz0tSz3uRy6LFP-JK3L-sIeOsGZvZLGCZ_Pp8zQ0LCuHOeiUwaabpEXliAc_Ya47yo1U0u_CTQmmsCapqYdMQ6NJiSsXptiIyw_m1NYJAw160XLTF2-YQlJJZBUD4eel7PwBy4j6kg8jFOm3yquxjBUvHykZShJu4uJWW9DqRbx2p9uJlowXPx8brQC3rY9aZ_N3FLTmWB68cZW34DjBUGkL0E2wPjmI7X8VI7oKpjuUBpvLxbM760KgmJi3j2mMyEy-NTdVU1QJbqy3st2y5eQ_2_9E62ffLMcMWSb0DhbUIcy3F4sooGYVatm1i-imH734Q9GrmqlG6mlr4qA1-Z0IaLf8vjORxV6iRuEwVUTL5oVOgj4ppRQqahyAboD6i1C55vcntT2wvUhsVq98L-Wefx296G_8LD-Ner2Lq0BBUyLhPXfqSGK8o9lwIK-omv22Y-p74fEVcwtByKzzqGhWDQ7Er1xvqPjJsWYfGqefsaZ1D8PH7VcpwB8L_U_eF_qDu4Hx6MTsdTaZXo8lsOLmcTS8cuqXuaDw7nYxG4-nsYjIcjq-Gl68O_Tv1MTodX14Or6YX51cjtB6Px6__AB8ZB9U)
 ---
 
 ## Prerequisites
