@@ -11,12 +11,20 @@ func (e *ApiError) Error() string {
 	return e.Message
 }
 
+func (e *ApiError) ErrorWithAdditionalMessage(additionalMessage string) string {
+	return e.Message + ": " + additionalMessage
+}
+
 var (
 	ErrFailedToConvertJSON    = &ApiError{Status: http.StatusInternalServerError, Message: "Failed to convert transcript list to JSON"}
+	ErrFailedToCreateNonce    = &ApiError{Status: http.StatusInternalServerError, Message: "Failed to create nonce"}
+	ErrFailedToCreateSession  = &ApiError{Status: http.StatusInternalServerError, Message: "Failed to create session"}
 	ErrFailedToSaveRequest    = &ApiError{Status: http.StatusInternalServerError, Message: "Failed to save request"}
 	ErrInsufficientData       = &ApiError{Status: http.StatusBadRequest, Message: "Insufficient data"}
-	ErrInsufficientHeaders    = &ApiError{Status: http.StatusBadRequest, Message: "Signature header or Session-Token is required"}
+	ErrInsufficientHeaders    = &ApiError{Status: http.StatusBadRequest, Message: "Insufficient headers"}
 	ErrInternalServer         = &ApiError{Status: http.StatusInternalServerError, Message: "Internal server error"}
+	ErrInvalidData            = &ApiError{Status: http.StatusBadRequest, Message: "Invalid data"}
+	ErrInvalidSessionToken    = &ApiError{Status: http.StatusUnauthorized, Message: "Invalid session token"}
 	ErrInvalidSignatureFormat = &ApiError{Status: http.StatusBadRequest, Message: "Invalid signature format"}
 	ErrInvalidSignature       = &ApiError{Status: http.StatusBadRequest, Message: "Invalid signature "}
 	ErrInvalidSignatureLength = &ApiError{Status: http.StatusBadRequest, Message: "Invalid signature length"}
