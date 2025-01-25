@@ -8,7 +8,7 @@ import (
 	"os"
 )
 
-var RDB *redis.Client
+var RedisClient *redis.Client
 
 func InitRedis() {
 	RedisUri := os.Getenv("REDIS_URI")
@@ -18,9 +18,9 @@ func InitRedis() {
 		log.Fatalf("Failed to parse Redis URI: %v", err)
 	}
 
-	RDB = redis.NewClient(opt)
+	RedisClient = redis.NewClient(opt)
 
-	_, err = RDB.Ping(context.Background()).Result()
+	_, err = RedisClient.Ping(context.Background()).Result()
 	if err != nil {
 		log.Fatalf("Failed to connect to Redis: %v", err)
 	} else {

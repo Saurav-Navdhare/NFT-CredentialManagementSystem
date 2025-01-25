@@ -16,10 +16,104 @@ This project is a blockchain-based credential management system that uses ERC721
 ### Illustration
 ---
 ####  Illustration of Complete Project
-![Illustration of Complete Project](./Role_Functions.drawio.png)
+<!--![Illustration of Complete Project](./Role_Functions.drawio.png)-->
+
+```mermaid
+   flowchart TD
+       A[admin]
+       B[moderator]
+       C[institute]
+       D[student]
+       E["Any account"]
+   
+       subgraph Roles & Functionality
+       A --> F["Register Moderator
+               Revoke Moderator"]
+       B --> G["Register Institute
+               Revoke Institute"]
+       C --> H["Issue Credential
+               Revoke Credential
+               List all issued credentials"]
+       D --> I["View all owned credentials"]
+       D --> K["accept/reject document for verification"]
+       E --> J["verify credential
+               verify signature"]
+       E --> L["request document for verification"]
+       end
+```
 ---
 #### Off-chain server sequence diagram 
-![Off-chain server sequence diagram](./Off-Chain%20Server%20Sequence%20Diagram.png)
+<!-- ![Off-chain server sequence diagram](./Off-Chain%20Server%20Sequence%20Diagram.png) -->
+```mermaid
+   sequenceDiagram
+       autonumber
+       participant Client
+       participant GoGinAPI
+       participant Redis
+       participant PostgreSQL
+   
+       Client->>GoGinAPI: GET /v1/auth/generate-nonce
+       GoGinAPI->>Redis: Store nonce with wallet address
+       Redis-->>GoGinAPI: Nonce stored
+       GoGinAPI-->>Client: Respond with nonce
+   
+       Client->>Client: Sign nonce with Web3 wallet
+       Client->>GoGinAPI: Request with signed nonce in header
+       GoGinAPI->>Redis: Retrieve nonce for wallet
+       Redis-->>GoGinAPI: Return nonce
+       GoGinAPI->>GoGinAPI: Verify digital signature
+       alt Signature valid
+           GoGinAPI->>Redis: Create and store session
+           Redis-->>GoGinAPI: Session stored
+           GoGinAPI-->>Client: Respond with session ID
+       else Signature invalid
+           GoGinAPI-->>Client: Respond with error
+       end
+   
+       Note over Client,GoGinAPI: User authenticated
+   
+       alt Accessing /v1/requests/create or /v1/requests/respond
+           alt No valid session
+               Client->>GoGinAPI: GET /v1/auth/generate-nonce
+               GoGinAPI->>Redis: Store new nonce with wallet address
+               Redis-->>GoGinAPI: Nonce stored
+               GoGinAPI-->>Client: Respond with new nonce
+               Client->>Client: Sign new nonce with Web3 wallet
+               Client->>GoGinAPI: Request with newly signed nonce in header
+               GoGinAPI->>Redis: Retrieve new nonce for wallet
+               Redis-->>GoGinAPI: Return new nonce
+               GoGinAPI->>GoGinAPI: Verify new digital signature
+               GoGinAPI->>Redis: Create and store new session
+               Redis-->>GoGinAPI: New session stored
+           end
+           
+           alt Accessing /v1/requests/create
+               Client->>GoGinAPI: POST /v1/requests/create
+               GoGinAPI->>PostgreSQL: Perform requested operation
+               PostgreSQL-->>GoGinAPI: Operation result
+               GoGinAPI-->>Client: Respond with result
+           else Accessing /v1/requests/respond
+               Client->>GoGinAPI: POST /v1/requests/respond
+               GoGinAPI->>PostgreSQL: Perform requested operation
+               PostgreSQL-->>GoGinAPI: Operation result
+               GoGinAPI-->>Client: Respond with result
+           end
+       else Accessing other routes
+           Client->>GoGinAPI: Request with session ID
+           GoGinAPI->>Redis: Verify session
+           Redis-->>GoGinAPI: Session valid
+           GoGinAPI->>PostgreSQL: Perform requested operation
+           PostgreSQL-->>GoGinAPI: Operation result
+           GoGinAPI-->>Client: Respond with result
+       end
+   
+       Note over GoGinAPI,PostgreSQL: Handle automatic expiry
+       GoGinAPI->>PostgreSQL: Query expired requests periodically
+       PostgreSQL-->>GoGinAPI: Return expired requests
+       GoGinAPI->>PostgreSQL: Update expired requests to "revoked"
+       PostgreSQL-->>GoGinAPI: Update successful
+```
+
 ---
 
 ## Prerequisites
