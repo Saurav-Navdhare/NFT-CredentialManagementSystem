@@ -24,22 +24,21 @@ type Request struct {
 }
 
 //type Request struct {
-//	ID              string    `gorm:"type:uuid;primaryKey;default:gen_random_uuid()"` // Auto-generate UUID
-//	StudentWallet   string    `gorm:"type:varchar(255);not null"`                     // Wallet address of the student
-//	RecipientWallet string    `gorm:"type:varchar(255);not null"`                     // Wallet address of the recipient
-//	Description     string    `gorm:"type:text"`                                      // Request description or reason
-//	CreatedAt       time.Time `gorm:"autoCreateTime"`                                 // Creation timestamp
-//	UpdatedAt       time.Time `gorm:"autoUpdateTime"`                                 // Update timestamp
-//	ExpiryTimestamp time.Time `gorm:"not null"`                                       // Expiry timestamp (default: 7 days)
+//	ID              string        `gorm:"type:uuid;primaryKey;default:gen_random_uuid()"`
+//	StudentWallet   string        `gorm:"type:varchar(255);not null"` // Owner of the transcript
+//	RecipientWallet string        `gorm:"type:varchar(255);not null"` // Requesting user
+//	Status          RequestStatus `gorm:"type:varchar(50);not null;default:'pending'"`
+//	Reason          string        `gorm:"type:text"` // Reason for denial if any
+//	CreatedAt       time.Time     `gorm:"autoCreateTime"`
+//	UpdatedAt       time.Time     `gorm:"autoUpdateTime"`
+//	ExpiryTimestamp time.Time     `gorm:"not null"`
+//
+//	// One-to-many relationship with RequestTranscript
+//	Transcripts []RequestTranscript `gorm:"foreignKey:RequestID;constraint:OnDelete:CASCADE"`
 //}
 //
-//type RespondedRequest struct {
-//	ID             string        `gorm:"type:uuid;primaryKey;default:gen_random_uuid()"`                    // Auto-generate UUID
-//	RequestID      string        `gorm:"type:uuid;not null;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`  // Foreign key referencing `Request.ID`
-//	Request        Request       `gorm:"foreignKey:RequestID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"` // Establish relationship with `Request`
-//	Response       RequestStatus `gorm:"type:varchar(50);not null"`                                         // Response: accept or reject
-//	Reason         string        `gorm:"type:text"`                                                         // Reason for rejection (optional)
-//	TranscriptList []uint64      `gorm:"type:bigint[]"`                                                     // List of transcript identifiers (JSON or Postgres array)
-//	CreatedAt      time.Time     `gorm:"autoCreateTime"`                                                    // Creation timestamp
-//	UpdatedAt      time.Time     `gorm:"autoUpdateTime"`                                                    // Update timestamp
+//// RequestTranscript stores the transcript IDs associated with a Request.
+//type RequestTranscript struct {
+//	RequestID    string `gorm:"type:uuid;not null"` // Foreign key to Request
+//	TranscriptID string `gorm:"type:text;not null"` // Transcript identifier
 //}

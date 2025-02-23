@@ -27,7 +27,7 @@ func CreateRequest(c *gin.Context) {
 	request := models.Request{
 		StudentWallet:   input.StudentWallet,
 		RecipientWallet: walletAddress,
-		Status:          "pending",
+		Status:          models.Pending,
 		ExpiryTimestamp: time.Now().Add(time.Duration(input.ExpiryMinutes) * time.Minute),
 	}
 
