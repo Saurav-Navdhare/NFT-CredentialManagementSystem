@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-// import "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
@@ -11,8 +10,7 @@ import "@openzeppelin/contracts/utils/ReentrancyGuard.sol"; // to avoid non reen
 import "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
-// import enumerable
-// import "@openzeppelin/contracts/utils/Counters.sol";
+import "./VerifyCredentials.sol";
 
 contract NFTCMS is 
     Initializable, 
@@ -71,8 +69,8 @@ contract NFTCMS is
         string reason
     );
     
-    event InstitutionRegistered(address indexed institution);
-    event ModeratorRegistered(address indexed moderator);
+    event InstitutionRegistered(address indexed institution, string name);
+    event ModeratorRegistered(address indexed moderator, string name);
 
     event ModeratorRevoked(
         address indexed moderator,
@@ -114,14 +112,16 @@ contract NFTCMS is
         _;
     }
 
-    function registerModerator(address _moderator)
+
+    function registerModerator(address _moderator, string memory _name)
         external
         onlyAdmin {
+        require(_moderator != address(0), "Invalid moderator address");
         require(!hasRole(MODERATOR_ROLE, _moderator), "Address is already a moderator");
         require(!hasRole(INSTITUTION_ROLE, _moderator), "Address is already an institution");
         require(!hasRole(DEFAULT_ADMIN_ROLE, _moderator), "Address is already an admin");
         _grantRole(MODERATOR_ROLE, _moderator);
-        emit ModeratorRegistered(_moderator);
+        emit ModeratorRegistered(_moderator, _name);
     }
 
     function revokeModerator(
@@ -135,14 +135,15 @@ contract NFTCMS is
     }
 
     // Institution Registration
-    function registerInstitution(address _institution) 
+    function registerInstitution(address _institution, string memory _name)
         external 
         onlyModerator {
+        require(_institution != address(0), "Invalid moderator address");
         require(!hasRole(MODERATOR_ROLE, _institution), "Address is already a moderator");
         require(!hasRole(INSTITUTION_ROLE, _institution), "Address is already an institution");
         require(!hasRole(DEFAULT_ADMIN_ROLE, _institution), "Address is already an admin");
         _grantRole(INSTITUTION_ROLE, _institution);
-        emit InstitutionRegistered(_institution);
+        emit InstitutionRegistered(_institution, _name);
     }
 
     function revokeInstitution(
@@ -155,18 +156,6 @@ contract NFTCMS is
         emit InstitutionRevoked(_institution, reason);
     }
 
-    function verifySignature(
-            bytes32 message,
-            address signer,
-            bytes memory signature
-        )   public
-            pure
-            returns (bool) {
-            bytes32 hash = MessageHashUtils.toEthSignedMessageHash(message);
-            address recoveredSigner = hash.recover(signature);
-            return signer == recoveredSigner;
-    }
-
     // Credential Issuance with Enhanced Validation
     function issueCredential(
         address _student,
@@ -177,17 +166,17 @@ contract NFTCMS is
         onlyInstitution
         whenNotPaused
         nonReentrant {
+        require(_student != address(0), "Invalid moderator address");
         require(_ipfsURIs[_ipfsURI]==0, "The IPFS URI is already issued for a credential");
-        require(verifySignature(   // check signature before storing it into smart contract
+        require(CredentialUtils.verifySignature(   // check signature before storing it into smart contract
             _hash,
             msg.sender,
             _signature
         ), "Invalid signature");
+
         incrementTokenId();
         uint256 newTokenId = getCurrentTokenId();
         require(credentials[newTokenId].tokenId == 0, "Token ID already exists");
-
-
 
         credentials[newTokenId] = Credential({
             tokenId: newTokenId,
@@ -213,7 +202,7 @@ contract NFTCMS is
         // require(credentials[tokenId].status != CredentialStatus.INVALID, "The credential is already invalidated");
         bytes memory signature = credentials[tokenId].signature;
         address signer = credentials[tokenId].signer;
-        bool isVerified = verifySignature(hash, signer, signature);
+        bool isVerified = CredentialUtils.verifySignature(hash, signer, signature);
         // if(!isVerified){
         //     credentials[tokenId].status = CredentialStatus.INVALID;
         // }
@@ -270,6 +259,21 @@ contract NFTCMS is
                 }
             }
             return institutionCredentials;
+    }
+
+    function fetchRole()
+        external
+        view
+        returns (string memory){
+        if(hasRole(DEFAULT_ADMIN_ROLE, msg.sender)){
+            return "ADMIN";
+        } else if(hasRole(MODERATOR_ROLE, msg.sender)){
+            return "MODERATOR";
+        } else if(hasRole(INSTITUTION_ROLE, msg.sender)){
+            return "INSTITUTION";
+        } else {
+            return "USER";
+        }
     }
 
 

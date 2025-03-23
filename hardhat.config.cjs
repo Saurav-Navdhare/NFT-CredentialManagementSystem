@@ -10,13 +10,9 @@ module.exports = {
     artifacts: "./client/src/artifacts",
   },
   settings: {
-
     optimizer: {
-
       enabled: true,
-
       runs: 1000
-
     }
   },
   networks: {
