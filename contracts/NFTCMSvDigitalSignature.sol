@@ -10,7 +10,7 @@ import "@openzeppelin/contracts/utils/ReentrancyGuard.sol"; // to avoid non reen
 import "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
-import "./VerifyCredentials.sol";
+import "./CredentialUtils.sol";
 
 contract NFTCMS is 
     Initializable, 
