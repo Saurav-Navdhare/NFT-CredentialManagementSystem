@@ -12,10 +12,10 @@ import { setUserRole } from "./store/slice/userRoleSlice";
 import { useDispatch, useSelector } from "react-redux";
 
 
-import Admin from "./components/Admin/Admin"
-import Moderator from "./components/Moderator/Moderator"
-import Institution from "./components/Institution/Institution"
-import User from "./components/User/User"
+import Admin from "./pages/Admin/Admin"
+import Moderator from "./pages/Moderator/Moderator"
+import Institution from "./pages/Institution/Institution"
+import User from "./pages/User/User"
 
 
 

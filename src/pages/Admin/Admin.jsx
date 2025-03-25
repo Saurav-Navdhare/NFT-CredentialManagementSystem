@@ -4,8 +4,8 @@ import {
     DialogContent, DialogTitle
 } from "@mui/material";
 import { RegisterModerator, RevokeModerator, FetchModerators } from "../../services/ContractInteraction";
-import GridTable from "../GridTable";
-import RegistrationForm from "../RegistrationForm";
+import GridTable from "../../components/GridTable";
+import RegistrationForm from "../../components/RegistrationForm";
 
 const Admin = () => {
     const [address, setAddress] = useState("");
