@@ -96,18 +96,11 @@ export const FetchModerators = async () => {
     });
 
     const activeModerators = Array.from(moderatorMap.entries())
-        .filter(([_, data]) => data.count > 0)
+        .filter(([, data]) => data.count > 0)
         .map(([address, data]) => ({
             address,
             name: data.name
         }));
 
     return activeModerators;
-
-    // return registeredEvents
-    //     .map(event => ({
-    //         address: event.returnValues.moderator,
-    //         name: event.returnValues.name
-    //     }))
-    //     .filter(({ address }) => !revokedSet.has(address));
 };
