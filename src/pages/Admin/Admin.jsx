@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import {
     Container, TextField, Button, Dialog, DialogActions,
-    DialogContent, DialogTitle
+    DialogContent, DialogTitle, Paper, Typography
 } from "@mui/material";
-import { RegisterModerator, RevokeModerator, FetchModerators } from "../../services/ContractInteraction";
+import { RegisterModerator, RevokeModerator, FetchModerators, CheckIfModerator } from "../../services/ContractInteraction";
 import GridTable from "../../components/GridTable";
 import RegistrationForm from "../../components/RegistrationForm";
 
@@ -12,6 +12,10 @@ const Admin = () => {
     const [name, setName] = useState("");
     const [moderators, setModerators] = useState([]);
     const [loading, setLoading] = useState(false);
+
+    const [checkAddress, setCheckAddress] = useState("");
+    const [foundModerator, setFoundModerator] = useState(null);
+    const [moderatorNotFound, setModeratorNotFound] = useState(false);
 
     useEffect(() => {
         (async () => {
@@ -29,7 +33,7 @@ const Admin = () => {
 
         setLoading(true);
         try {
-            await RegisterModerator(address, name);  // Wait for transaction success
+            await RegisterModerator(address, name);
             let updatedModerators = await FetchModerators();
             setModerators(updatedModerators);
         } catch (error) {
@@ -50,7 +54,7 @@ const Admin = () => {
 
         setLoading(true);
         try {
-            await RevokeModerator(deleteAddress, deleteReason);  // Wait for transaction success
+            await RevokeModerator(deleteAddress, deleteReason);
             let updatedModerators = await FetchModerators();
             setModerators(updatedModerators);
         } catch (error) {
@@ -61,8 +65,27 @@ const Admin = () => {
         setDeleteReason("");
     };
 
+    const handleCheckModerator = async () => {
+        setLoading(true);
+        setFoundModerator(null);
+        setModeratorNotFound(false);
+
+        const result = await CheckIfModerator(checkAddress);
+
+        if (result.exists) {
+            setFoundModerator({ address: checkAddress, name: result.name });
+        } else {
+            setModeratorNotFound(true);
+        }
+
+        setLoading(false);
+    };
+
+
+
     return (
         <Container maxWidth="md" sx={{ mt: 5 }}>
+            {/* Add Moderator Form */}
             <RegistrationForm
                 address={address}
                 setAddress={setAddress}
@@ -73,19 +96,66 @@ const Admin = () => {
                 label="Moderator"
             />
 
-            {
-                moderators.length ? (
-                    <GridTable
-                        columns={[{ key: "address", label: "Address" }, { key: "name", label: "Name" }]}
-                        data={moderators}
-                        handleDeleteClick={handleDeleteClick}
-                        loading={loading}
-                    />
-                ) : (
-                    <h1>No moderators to List</h1>
-                )
-            }
+            {/* Moderator List */}
+            {moderators.length ? (
+                <GridTable
+                    columns={[{ key: "address", label: "Address" }, { key: "name", label: "Name" }]}
+                    data={moderators}
+                    handleDeleteClick={handleDeleteClick}
+                    loading={loading}
+                />
+            ) : (
+                <h1>No moderators to List</h1>
+            )}
 
+            {/* Check Moderator Form */}
+            <Paper sx={{ p: 2, mt: 4, display: "flex", gap: 2, alignItems: "center" }}>
+                <TextField
+                    label="Enter Address to Check"
+                    variant="outlined"
+                    size="small"
+                    fullWidth
+                    value={checkAddress}
+                    onChange={(e) => setCheckAddress(e.target.value)}
+                    disabled={loading}
+                />
+                <Button
+                    variant="contained"
+                    color="primary"
+                    onClick={handleCheckModerator}
+                    disabled={loading}
+                >
+                    Check Moderator
+                </Button>
+            </Paper>
+
+            {/* Show Moderator Found */}
+            {foundModerator && (
+                <Paper sx={{ p: 2, mt: 2 }}>
+                    <Typography variant="h6">Moderator Found</Typography>
+                    <Typography><b>Address:</b> {foundModerator.address}</Typography>
+                    <Typography><b>Name:</b> {foundModerator.name}</Typography>
+                    <Button
+                        variant="contained"
+                        color="error"
+                        sx={{ mt: 2 }}
+                        onClick={() => handleDeleteClick(foundModerator.address)}
+                    >
+                        Remove Moderator
+                    </Button>
+                </Paper>
+            )}
+
+            {/* Show Moderator Not Found */}
+            {moderatorNotFound && (
+                <Paper sx={{ p: 2, mt: 2, bgcolor: "error.main", color: "white" }}>
+                    <Typography variant="h6">No Moderator Found</Typography>
+                    <Typography>The entered address is not a moderator.</Typography>
+                </Paper>
+            )}
+
+
+            {/* Delete Confirmation Dialog */}
             <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}>
                 <DialogTitle>Remove Moderator</DialogTitle>
                 <DialogContent>

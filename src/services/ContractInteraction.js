@@ -104,3 +104,33 @@ export const FetchModerators = async () => {
 
     return activeModerators;
 };
+
+
+export const CheckIfModerator = async (address) => {
+    try {
+        const registeredEvents = await contract.getPastEvents("ModeratorRegistered", {
+            filter: { moderator: address },
+            fromBlock: 0,
+            toBlock: "latest",
+        });
+
+        const revokedEvents = await contract.getPastEvents("ModeratorRevoked", {
+            filter: { moderator: address },
+            fromBlock: 0,
+            toBlock: "latest",
+        });
+
+        const registeredCount = registeredEvents.length;
+        const revokedCount = revokedEvents.length;
+
+        if (registeredCount > revokedCount) {
+            const latestRegistration = registeredEvents[registeredCount - 1]; // Last registered event
+            return { exists: true, name: latestRegistration.returnValues.name };
+        }
+
+        return { exists: false };
+    } catch (error) {
+        console.error("Error checking moderator status:", error);
+        return { exists: false, error: error.message };
+    }
+};
