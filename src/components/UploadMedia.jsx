@@ -15,6 +15,7 @@ export default function UploadMedia({ classNames }) {
     const [file, setFile] = useState([]);
     const [disabled, setDisabled] = useState(false);
     const [studentAddress, setStudentAddress] = useState('');
+    const [remarks, setRemarks] = useState('');
     const [error, setError] = useState('');
     const [success, setSuccess] = useState(false);
     const [ipfsURI, setIpfsURI] = useState('');
@@ -107,7 +108,7 @@ export default function UploadMedia({ classNames }) {
                     ) : (
                         <div
                             {...getRootProps({
-                                className: `${classNames} flex justify-center items-center border-2 border-dashed border-[#93B7BE] rounded-lg border upload-container`,
+                                className: `${classNames} flex justify-center items-center rounded-lg upload-container`,
                             })}
                         >
                             <input {...getInputProps()} />
@@ -149,6 +150,48 @@ export default function UploadMedia({ classNames }) {
                                 },
                                 '& .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline': {
                                     borderColor: 'primary.main',
+                                },
+                                '& .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline': {
+                                    // borderColor: 'primary.main',
+                                    borderColor: '#ffffff',
+                                },
+                                '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                                    borderColor: 'secondary.light',
+                                },
+                            }}
+                            disabled={disabled} // Disable text field
+                        />
+                        <TextField
+                            label="Credential Remarks"
+                            variant="outlined"
+                            value={remarks}
+                            onChange={(e) => {
+                                setError('');
+                                setRemarks(e.target.value);
+                            }}
+                            error={Boolean(error)}
+                            helperText={error}
+                            color="secondary"
+                            sx={{
+                                "width": "400px",
+                                "borderColor": "#ffffff",
+                                "marginBottom": '20px',
+                                '& .MuiInputLabel-root': {
+                                    color: 'primary.main',
+                                },
+                                '& .MuiInputLabel-root.Mui-focused': {
+                                    color: 'primary.main',
+                                },
+                                '& .MuiOutlinedInput-root': {
+                                    color: '#A64D79',
+                                },
+                                '& .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline': {
+                                    // borderColor: 'primary.main',
+                                    borderColor: 'primary.main',
+                                },
+                                '& .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline': {
+                                    // borderColor: 'primary.main',
+                                    borderColor: '#ffffff',
                                 },
                                 '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': {
                                     borderColor: 'secondary.light',
