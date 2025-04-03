@@ -231,6 +231,19 @@ contract NFTCMS is
         );
     }
 
+    function fetchCredentialForInstitution(uint256 _tokenId) 
+        public 
+        view 
+        returns (bool success, string memory message, Credential memory credential) {
+        if (!_isMinted(_tokenId)) {
+            return (false, "Token does not exist", Credential(0, "", CredentialStatus.VALID, "", address(0)));
+        }
+        if (credentials[_tokenId].signer != msg.sender) {
+            return (false, "You are not authorized to fetch this credential", Credential(0, "", CredentialStatus.VALID, "", address(0)));
+        }
+        return (true, "Credential fetched successfully", credentials[_tokenId]);
+    }
+
     function getOwnedCredentials() 
         public 
         view 
@@ -262,7 +275,7 @@ contract NFTCMS is
     }
 
     function fetchRole()
-        external
+        public
         view
         returns (string memory){
         if(hasRole(DEFAULT_ADMIN_ROLE, msg.sender)){
