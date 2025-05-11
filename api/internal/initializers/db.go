@@ -18,7 +18,7 @@ func InitDB() {
 	}
 
 	// Auto-migrate the Request model
-	err = db.AutoMigrate(&models.Request{})
+	err = db.AutoMigrate(&models.Request{}, &models.RequestTranscript{}, &models.Transcript{})
 	if err != nil {
 		log.Fatalf("Failed to migrate models: %v", err)
 	}

@@ -36,4 +36,5 @@ var (
 	ErrRequestNotFound        = &ApiError{Status: http.StatusUnprocessableEntity, Message: "Request not found"}
 	ErrRequestNotPending      = &ApiError{Status: http.StatusUnprocessableEntity, Message: "Request is not in a pending state"}
 	ErrUnprocessableEntity    = &ApiError{Status: http.StatusUnprocessableEntity, Message: "Unprocessable entity"}
+	ErrUnauthorizedTranscript = &ApiError{Status: http.StatusUnauthorized, Message: "Unauthorized to access this transcript"}
 )

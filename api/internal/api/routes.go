@@ -29,5 +29,15 @@ func SetupRoutes(router *gin.Engine) {
 				digitalSignatureGroup.POST("/respond/:request_id", handlers.RespondRequest) // add mandatory nonce verifier
 			}
 		}
+		transcriptGroup := version.Group("/transcripts")
+		{
+			sessionGroup := transcriptGroup.Group("/")
+			{
+				sessionGroup.Use(middleware.SessionMiddleware())
+				sessionGroup.GET("/", handlers.GetTranscripts)
+				sessionGroup.POST("/", handlers.AddTranscript)
+				sessionGroup.GET("/:ipfs_uri", handlers.CheckAccess)
+			}
+		}
 	}
 }

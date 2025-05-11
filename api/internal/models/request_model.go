@@ -29,3 +29,11 @@ type RequestTranscript struct {
 	RequestID    string `gorm:"type:uuid;not null"` // Foreign key (Request ID)
 	TranscriptID string `gorm:"type:text;not null"` // Transcript identifier
 }
+
+// Transcript represents a student's transcript stored on IPFS.
+type Transcript struct {
+	TranscriptID     string `gorm:"primaryKey;type:text"`                                // Primary Key
+	IPFSURIMetadata  string `gorm:"column:ipfs_uri_metadata;type:text;unique;not null"`  // Metadata URI on IPFS
+	IPFSURIMediaHash string `gorm:"column:ipfs_uri_mediahash;type:text;unique;not null"` // Actual content URI (e.g., PDF, image) on IPFS
+	OwnerWallet      string `gorm:"type:varchar(255);not null"`                          // Owner of the transcript
+}
