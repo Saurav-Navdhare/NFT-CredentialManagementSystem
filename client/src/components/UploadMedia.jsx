@@ -7,6 +7,7 @@ import { Typography, TextField, Button } from '@mui/material';
 import { Bars } from 'react-loader-spinner';
 import uploadToIPFS from "./utils/uploadToIPFS"
 import fetchAndHash from './utils/fetchAndHash';
+import { IssueCredential } from '../services/ContractInteraction';
 
 export default function UploadMedia({ classNames }) {
     UploadMedia.propTypes = {
@@ -20,6 +21,7 @@ export default function UploadMedia({ classNames }) {
     const [success, setSuccess] = useState(false);
     const [ipfsURI, setIpfsURI] = useState('');
     const [fileHash, setFileHash] = useState('');
+    const [title, setTitle] = useState('');
 
     const onDrop = useCallback(acceptedFiles => {
         if (acceptedFiles?.length !== 0) {
@@ -62,11 +64,16 @@ export default function UploadMedia({ classNames }) {
                 }
                 setIpfsURI(response.ipfsUrl);
 
-                const res = await fetchAndHash(response.ipfsUrl);
+                const res = await fetchAndHash(file);
+                console.log(res);
                 if (res.error != null) {
                     throw new Error(res.error);
                 }
-                setFileHash(res.hash);
+                setFileHash('0x' + res.hash);
+                // digitally sign the hash and add it to the metadata
+                IssueCredential(studentAddress, ipfsURI, fileHash, title)
+
+
                 setSuccess(true);
             } catch (error) {
                 console.error(error);
@@ -199,6 +206,38 @@ export default function UploadMedia({ classNames }) {
                             }}
                             disabled={disabled} // Disable text field
                         />
+                        <TextField
+                            label="Transcript Title"
+                            variant="outlined"
+                            value={title}
+                            onChange={(e) => setTitle(e.target.value)}
+                            color="secondary"
+                            sx={{
+                                "width": "400px",
+                                "borderColor": "#ffffff",
+                                "marginBottom": '20px',
+                                '& .MuiInputLabel-root': {
+                                    color: 'primary.main',
+                                },
+                                '& .MuiInputLabel-root.Mui-focused': {
+                                    color: 'primary.main',
+                                },
+                                '& .MuiOutlinedInput-root': {
+                                    color: '#A64D79',
+                                },
+                                '& .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline': {
+                                    borderColor: 'primary.main',
+                                },
+                                '& .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline': {
+                                    borderColor: '#ffffff',
+                                },
+                                '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                                    borderColor: 'secondary.light',
+                                },
+                            }}
+                            disabled={disabled}
+                        />
+
                         <Button
                             variant="contained"
                             color="primary"

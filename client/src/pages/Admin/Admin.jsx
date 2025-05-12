@@ -101,7 +101,7 @@ const Admin = () => {
                 <GridTable
                     columns={[{ key: "address", label: "Address" }, { key: "name", label: "Name" }]}
                     data={moderators}
-                    handleDeleteClick={handleDeleteClick}
+                    handleClick={handleDeleteClick}
                     loading={loading}
                 />
             ) : (

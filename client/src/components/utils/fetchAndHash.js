@@ -1,5 +1,7 @@
 import axios from 'axios';
-import { keccak256 } from 'js-sha3';
+// import { keccak256 } from 'js-sha3';
+import pkg from 'js-sha3';
+const { keccak256 } = pkg;
 
 async function fetchAndHash(url) {
     try {
@@ -18,6 +20,7 @@ async function fetchAndHash(url) {
         return { hash: null, error: error };
     }
 }
+
 
 
 export default fetchAndHash;

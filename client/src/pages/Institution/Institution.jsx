@@ -5,16 +5,21 @@ import {
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import UploadMedia from "../../components/UploadMedia";
+import FetchRecords from "../../components/FetchRecords"; // Assuming FetchRecords is in the components folder
 
 const Institution = () => {
     const [open, setOpen] = useState(false);
     const [tokenId, setTokenId] = useState("");
     const [credential, setCredential] = useState(null);
     const [error, setError] = useState("");
+    const [recordsDialogOpen, setRecordsDialogOpen] = useState(false); // Manage dialog state
 
     // Open & Close Dialog
     const handleOpen = () => setOpen(true);
     const handleClose = () => setOpen(false);
+    const handleRecordsDialogOpen = () => setRecordsDialogOpen(true); // Open records dialog
+    const handleRecordsDialogClose = () => setRecordsDialogOpen(false); // Close records dialog
+
 
     // Fetch Credential (Replace with actual API call)
     const fetchCredential = async () => {
@@ -56,11 +61,6 @@ const Institution = () => {
         } catch (err) {
             setError(err.message);
         }
-    };
-
-    // List Issued Credentials (Navigate to list page or fetch)
-    const listIssuedCredentials = () => {
-        window.location.href = "/issued-credentials"; // Replace with actual page
     };
 
     return (
@@ -157,12 +157,15 @@ const Institution = () => {
                 <Button
                     variant="contained"
                     color="info"
-                    onClick={listIssuedCredentials}
+                    onClick={handleRecordsDialogOpen} // Open records dialog
                     sx={{ marginTop: 2 }}
                 >
                     List Issued Credentials
                 </Button>
             </Box>
+
+            {/* FetchRecords Dialog */}
+            <FetchRecords open={recordsDialogOpen} handleClose={handleRecordsDialogClose} />
         </div>
     );
 }

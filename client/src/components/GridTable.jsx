@@ -10,21 +10,22 @@ import {
     IconButton,
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
+import LaunchIcon from '@mui/icons-material/Launch';
 
-const GridTable = ({ columns, data, handleDeleteClick, loading }) => {
+const GridTable = ({ columns, data, handleClick, loading, action = "delete" }) => {
     if (!data.length) return <h1>No data available</h1>;
 
     return (
         <TableContainer component={Paper} sx={{ mt: 3 }}>
             <Table>
                 <TableHead>
-                    <TableRow>
+                    <TableRow key="header">
                         {columns.map((column) => (
                             <TableCell key={column.key}>
                                 <b>{column.label}</b>
                             </TableCell>
                         ))}
-                        {handleDeleteClick && <TableCell align="right"><b>Actions</b></TableCell>}
+                        {handleClick && <TableCell align="right" key="action"><b>Action</b></TableCell>}
                     </TableRow>
                 </TableHead>
                 <TableBody>
@@ -35,14 +36,14 @@ const GridTable = ({ columns, data, handleDeleteClick, loading }) => {
                                     {row[column.key]}
                                 </TableCell>
                             ))}
-                            {handleDeleteClick && (
-                                <TableCell align="right">
+                            {handleClick && (
+                                <TableCell align="right" key={`action-${row.id || row.address}`}>
                                     <IconButton
                                         color="error"
-                                        onClick={() => handleDeleteClick(row.address)}
+                                        onClick={() => handleClick(action == "delete" ? row.address : row.id)}
                                         disabled={loading}
                                     >
-                                        <DeleteIcon />
+                                        {action === "delete" ? <DeleteIcon /> : <LaunchIcon />}
                                     </IconButton>
                                 </TableCell>
                             )}
@@ -61,8 +62,9 @@ GridTable.propTypes = {
         })
     ).isRequired,
     data: PropTypes.arrayOf(PropTypes.object).isRequired,
-    handleDeleteClick: PropTypes.func,
+    handleClick: PropTypes.func,
     loading: PropTypes.bool,
+    action: PropTypes.string
 };
 
 export default GridTable;

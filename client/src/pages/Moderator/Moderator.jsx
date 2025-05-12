@@ -95,7 +95,7 @@ const Moderator = () => {
                     <GridTable
                         columns={[{ key: "address", label: "Address" }, { key: "name", label: "Name" }]}
                         data={institutions}
-                        handleDeleteClick={handleDeleteClick}
+                        handleClick={handleDeleteClick}
                         loading={loading}
                     />
                 ) : (

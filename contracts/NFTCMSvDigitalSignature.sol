@@ -59,7 +59,8 @@ contract NFTCMS is
     event CredentialIssued(
         uint256 indexed tokenId,
         address indexed student,
-        address indexed institution
+        address indexed institution,
+        string title
     );
 
     event CredentialStatusChanged(
@@ -161,7 +162,8 @@ contract NFTCMS is
         address _student,
         string memory _ipfsURI,
         bytes32 _hash,
-        bytes memory _signature
+        bytes memory _signature,
+        string memory title
     )   public
         onlyInstitution
         whenNotPaused
@@ -189,7 +191,7 @@ contract NFTCMS is
         _ipfsURIs[_ipfsURI]=newTokenId;
 
         _mint(_student, newTokenId);
-        emit CredentialIssued(newTokenId, _student, msg.sender);
+        emit CredentialIssued(newTokenId, _student, msg.sender, title);
     }
 
     function verifyCredential(
@@ -231,35 +233,35 @@ contract NFTCMS is
         );
     }
 
-    function getOwnedCredentials() 
-        public 
-        view 
-        returns (uint256[] memory) {
-        uint256 balance = balanceOf(msg.sender); // Number of tokens owned by the address
-        uint256[] memory ownedTokens = new uint256[](balance);
+    // function getOwnedCredentials() 
+    //     public 
+    //     view 
+    //     returns (uint256[] memory) {
+    //     uint256 balance = balanceOf(msg.sender); // Number of tokens owned by the address
+    //     uint256[] memory ownedTokens = new uint256[](balance);
 
-        for (uint256 i = 0; i < balance; i++) {
-            ownedTokens[i] = tokenOfOwnerByIndex(msg.sender, i);
-        }
+    //     for (uint256 i = 0; i < balance; i++) {
+    //         ownedTokens[i] = tokenOfOwnerByIndex(msg.sender, i);
+    //     }
 
-        return ownedTokens;
-    }
+    //     return ownedTokens;
+    // }
 
-    function getCredentialsIssuedByInstitution() 
-        public 
-        view
-        onlyInstitution
-        returns (uint256[] memory) {
-            uint256[] memory institutionCredentials = new uint256[](getCurrentTokenId());
-            uint256 count = 0;
-            for (uint256 i = 1; i <= getCurrentTokenId(); i++) {
-                if(credentials[i].signer == msg.sender){      // as tokenID starts from 1
-                    institutionCredentials[count] = i;
-                    count++;
-                }
-            }
-            return institutionCredentials;
-    }
+    // function getCredentialsIssuedByInstitution() 
+    //     public 
+    //     view
+    //     onlyInstitution
+    //     returns (uint256[] memory) {
+    //         uint256[] memory institutionCredentials = new uint256[](getCurrentTokenId());
+    //         uint256 count = 0;
+    //         for (uint256 i = 1; i <= getCurrentTokenId(); i++) {
+    //             if(credentials[i].signer == msg.sender){      // as tokenID starts from 1
+    //                 institutionCredentials[count] = i;
+    //                 count++;
+    //             }
+    //         }
+    //         return institutionCredentials;
+    // }
 
     function fetchRole()
         external

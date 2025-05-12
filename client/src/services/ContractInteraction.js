@@ -1,6 +1,7 @@
 import web3 from './web3';
 import NFTCMS from '../artifacts/contracts/NFTCMSvDigitalSignature.sol/NFTCMS.json';  // Your contract ABI
 import config from '../config';
+import { uploadJSONToIPFS } from '../components/utils/uploadToIPFS';
 
 const contractAddress = config.CONTRACT_ADDRESS;
 const abi = JSON.parse(JSON.stringify(NFTCMS.abi));
@@ -250,5 +251,118 @@ export const CheckIfInstitution = async (address) => {
     } catch (error) {
         console.error("Error checking institution status:", error);
         return { exists: false, error: error.message };
+    }
+};
+
+export const IssueCredential = async (_student, _ipfsURI, fileHash, title) => {
+    // digitally sign the fileHash first
+    const accounts = await web3.eth.getAccounts();
+    const signer = accounts[0];
+    console.log("fileHash", fileHash);
+
+    // Ensure fileHash is a valid 32-byte hex string (0x + 64 hex chars)
+    let fileHashHex = fileHash;
+    if (typeof fileHash !== 'string' || !/^0x[0-9a-fA-F]{64}$/.test(fileHash)) {
+        throw new Error("fileHash must be a 32-byte hex string (0x + 64 hex chars)");
+    }
+
+    const signature = await window.ethereum.request({
+        method: 'personal_sign',
+        params: [fileHashHex, signer],
+    });
+    let metadata = {
+        title: title,
+        institution: signer,
+        fileHash: fileHashHex,
+        ipfsURI: _ipfsURI,
+        signature: signature,
+        dateOfIssuance: new Date().toISOString()
+    };
+    // upload the metadata to IPFS
+    const metadataHash = await uploadJSONToIPFS(metadata);
+    console.log("Metadata", metadata);
+    console.log("Metadata Hash", metadataHash);
+    // then send the transaction to the contract
+    try {
+        await contract.methods.issueCredential(_student, _ipfsURI, fileHashHex, signature, title).send({ from: signer });
+    } catch (error) {
+        console.log("Error issuing credential:", error);
+    }
+}
+
+export const FetchInstitutionCredentials = async () => {
+    const accounts = await web3.eth.getAccounts();
+    const account = accounts[0]; // institution address
+    try {
+        // Fetch all credentials issued by this institution
+        const issuedEvents = await contract.getPastEvents("CredentialIssued", {
+            filter: { institution: account },
+            fromBlock: 0,
+            toBlock: "latest",
+        });
+
+        // Fetch all credential status change events (for revocation tracking)
+        const statusChangedEvents = await contract.getPastEvents("CredentialStatusChanged", {
+            fromBlock: 0,
+            toBlock: "latest",
+        });
+
+        // Build a set of revoked tokenIds
+        const revokedTokenIds = new Set(
+            statusChangedEvents.map(event => Number(event.returnValues.tokenId))
+        );
+
+        console.log("Revoked Token IDs:", revokedTokenIds);
+
+        // Only return credentials that are not revoked
+        const credentials = issuedEvents
+            .map((event) => ({
+                tokenId: Number(event.returnValues.tokenId),
+                student: event.returnValues.student,
+                title: event.returnValues.title,
+                revoked: revokedTokenIds.has(Number(event.returnValues.tokenId))
+            }))
+            .sort((a, b) => {
+                // Non-revoked first, revoked last
+                if (a.revoked === b.revoked) return 0;
+                return a.revoked ? 1 : -1;
+            });
+
+        return credentials;
+    } catch (error) {
+        console.error("Error fetching credentials:", error);
+        return [];
+    }
+};
+
+export const FetchCredentialByTokenId = async (tokenId) => {
+    try {
+        // Ensure tokenId is a string representing a uint256
+        let tokenIdUint256;
+        if (typeof tokenId === "number" || typeof tokenId === "string") {
+            tokenIdUint256 = tokenId.toString();
+        } else {
+            throw new Error("Invalid tokenId type");
+        }
+
+        const credential = await contract.methods.credentials(tokenIdUint256).call();
+        console.log(credential)
+        // The returned object will have fields as per your Credential struct
+        return credential;
+    } catch (error) {
+        console.error("Error fetching credential by tokenId:", error);
+        throw error;
+    }
+};
+
+export const RevokeCredential = async (tokenId, reason = "any") => {
+    const accounts = await web3.eth.getAccounts();
+    const account = accounts[0];
+
+    try {
+        await contract.methods.revokeCredential(tokenId, reason).send({ from: account });
+    } catch (error) {
+        console.error("Error revoking credential:", error);
+        throw error;
     }
 };

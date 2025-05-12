@@ -16,6 +16,7 @@ import Admin from "./pages/Admin/Admin"
 import Moderator from "./pages/Moderator/Moderator"
 import Institution from "./pages/Institution/Institution"
 import User from "./pages/User/User"
+import FetchRecords from './components/FetchRecords';
 
 
 
@@ -67,6 +68,7 @@ function App() {
 
                   <Route element={<ProtectedRoute userRole={userRole} allowedRoles={["INSTITUTION"]} />}>
                     <Route path="/institution" element={<Institution />} />
+                    <Route path="/issued-credentials" element={<FetchRecords />} />
                   </Route>
 
                   <Route>
