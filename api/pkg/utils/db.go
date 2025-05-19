@@ -2,8 +2,6 @@ package utils
 
 import (
 	"api/internal/models"
-	"fmt"
-
 	"gorm.io/gorm"
 )
 
@@ -34,47 +32,93 @@ func GetRequestsForStudent(db *gorm.DB, studentWallet string) ([]models.Request,
 
 func CreateTranscriptEntry(db *gorm.DB, transcript models.Transcript) (models.Transcript, error) {
 	if err := db.Create(&transcript).Error; err != nil {
+
 		return transcript, err
 	}
 	return transcript, nil
 }
 
-func GetApprovedTranscript(db *gorm.DB, walletAddress string) ([]string, error) {
-	var transcriptIDs []string
+//func GetApprovedTranscript(db *gorm.DB, walletAddress string) ([]string, error) {
+//	var transcriptIDs []string
+//
+//	// 1. Transcripts directly owned
+//	var owned []string
+//	if err := db.Model(&models.Transcript{}).
+//		Select("transcript_id").
+//		Where("owner_wallet = ?", walletAddress).
+//		Scan(&owned).Error; err != nil {
+//		return nil, err
+//	}
+//	fmt.Println(owned)
+//	// 2. Transcripts from approved requests
+//	var approved []string
+//	if err := db.Model(&models.RequestTranscript{}).
+//		Select("transcript_id").
+//		Joins("JOIN requests ON requests.id = request_transcripts.request_id").
+//		Where("requests.recipient_wallet = ? AND requests.status = ?", walletAddress, models.Approved).
+//		Scan(&approved).Error; err != nil {
+//		return nil, err
+//	}
+//
+//	// Deduplicate
+//	idMap := make(map[string]struct{})
+//	for _, id := range owned {
+//		idMap[id] = struct{}{}
+//	}
+//	for _, id := range approved {
+//		idMap[id] = struct{}{}
+//	}
+//
+//	for id := range idMap {
+//		transcriptIDs = append(transcriptIDs, id)
+//	}
+//
+//	return transcriptIDs, nil
+//}
+
+func GetApprovedTranscript(db *gorm.DB, walletAddress string) ([]models.Transcript, error) {
+	var result []models.Transcript
 
 	// 1. Transcripts directly owned
-	var owned []string
-	if err := db.Model(&models.Transcript{}).
-		Select("transcript_id").
-		Where("owner_wallet = ?", walletAddress).
-		Scan(&owned).Error; err != nil {
+	var ownedTranscripts []models.Transcript
+	if err := db.Where("owner_wallet = ?", walletAddress).
+		Find(&ownedTranscripts).Error; err != nil {
 		return nil, err
 	}
-	fmt.Println(owned)
-	// 2. Transcripts from approved requests
-	var approved []string
+
+	// 2. Get transcript IDs from approved requests
+	var approvedIDs []string
 	if err := db.Model(&models.RequestTranscript{}).
 		Select("transcript_id").
 		Joins("JOIN requests ON requests.id = request_transcripts.request_id").
 		Where("requests.recipient_wallet = ? AND requests.status = ?", walletAddress, models.Approved).
-		Scan(&approved).Error; err != nil {
+		Pluck("transcript_id", &approvedIDs).Error; err != nil {
 		return nil, err
 	}
 
-	// Deduplicate
-	idMap := make(map[string]struct{})
-	for _, id := range owned {
-		idMap[id] = struct{}{}
-	}
-	for _, id := range approved {
-		idMap[id] = struct{}{}
-	}
-
-	for id := range idMap {
-		transcriptIDs = append(transcriptIDs, id)
+	// 3. Fetch transcript records matching the approved IDs
+	var approvedTranscripts []models.Transcript
+	if len(approvedIDs) > 0 {
+		if err := db.Where("transcript_id IN ?", approvedIDs).
+			Find(&approvedTranscripts).Error; err != nil {
+			return nil, err
+		}
 	}
 
-	return transcriptIDs, nil
+	// 4. Combine and deduplicate (in case of overlap)
+	transcriptMap := make(map[string]models.Transcript)
+	for _, t := range ownedTranscripts {
+		transcriptMap[t.TranscriptID] = t
+	}
+	for _, t := range approvedTranscripts {
+		transcriptMap[t.TranscriptID] = t
+	}
+
+	for _, t := range transcriptMap {
+		result = append(result, t)
+	}
+
+	return result, nil
 }
 
 func CheckAccess(db *gorm.DB, walletAddress string, ipfsURI string) (bool, error) {

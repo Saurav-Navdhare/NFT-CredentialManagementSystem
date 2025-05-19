@@ -9,6 +9,7 @@ const Dashboard = ({ userRole }) => {
         "MODERATOR": { label: "Moderator", path: "/moderator" },
         "INSTITUTION": { label: "Institution", path: "/institution" },
         "USER": { label: "User", path: "/user" },
+        "Request": { label: "Request Dashboard", path: "/requests" },
     };
 
     return (
@@ -44,6 +45,16 @@ const Dashboard = ({ userRole }) => {
                             </Button>
                         </Grid2>
                     }
+                    <Grid2>
+                        <Button
+                            variant="outlined"
+                            color="primary"
+                            size="large"
+                            onClick={() => navigate(pages["Request"].path)}
+                        >
+                            {pages["Request"].label}
+                        </Button>
+                    </Grid2>
                 </Grid2>
             </Box>
         </Container>

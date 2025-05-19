@@ -17,6 +17,7 @@ type Request struct {
 	RecipientWallet string        `gorm:"type:varchar(255);not null"`                     // Requesting user
 	Status          RequestStatus `gorm:"type:varchar(50);not null;default:'pending'"`    // Status: pending, approved, denied
 	Reason          string        `gorm:"type:text"`                                      // Reason for denial
+	Description     string        `gorm:"type:text"`                                      // Description of the request
 	CreatedAt       time.Time     `gorm:"autoCreateTime"`                                 // Creation timestamp
 	UpdatedAt       time.Time     `gorm:"autoUpdateTime"`                                 // Update timestamp
 	ExpiryTimestamp time.Time     `gorm:"not null"`                                       // Expiry timestamp

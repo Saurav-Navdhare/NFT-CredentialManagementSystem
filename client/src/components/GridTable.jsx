@@ -12,7 +12,7 @@ import {
 import DeleteIcon from "@mui/icons-material/Delete";
 import LaunchIcon from '@mui/icons-material/Launch';
 
-const GridTable = ({ columns, data, handleClick, loading, action = "delete" }) => {
+const GridTable = ({ columns, data, handleClick, loading, action = "delete", passRow=false }) => {
     if (!data.length) return <h1>No data available</h1>;
 
     return (
@@ -30,17 +30,18 @@ const GridTable = ({ columns, data, handleClick, loading, action = "delete" }) =
                 </TableHead>
                 <TableBody>
                     {data.map((row) => (
-                        <TableRow key={row.id || row.address}>
+                        <TableRow key={row.id || row.address || row.request_id}>
                             {columns.map((column) => (
                                 <TableCell key={column.key}>
                                     {row[column.key]}
                                 </TableCell>
                             ))}
                             {handleClick && (
-                                <TableCell align="right" key={`action-${row.id || row.address}`}>
+                                <TableCell align="right" key={`action-${row.id || row.address || row.request_id}`}>
                                     <IconButton
                                         color="error"
-                                        onClick={() => handleClick(action == "delete" ? row.address : row.id)}
+                                        // onClick={() => handleClick(action == "delete" ? row.address : row.id)}
+                                        onClick={() => handleClick(passRow ? row: action == "delete" ? row.address : row.id)}
                                         disabled={loading}
                                     >
                                         {action === "delete" ? <DeleteIcon /> : <LaunchIcon />}
@@ -64,7 +65,8 @@ GridTable.propTypes = {
     data: PropTypes.arrayOf(PropTypes.object).isRequired,
     handleClick: PropTypes.func,
     loading: PropTypes.bool,
-    action: PropTypes.string
+    action: PropTypes.string,
+    passRow: PropTypes.bool
 };
 
 export default GridTable;

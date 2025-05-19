@@ -12,7 +12,7 @@ async function fetchAndHash(url) {
         const fileBytes = new Uint8Array(response.data);
 
         // Generate the Keccak256 hash
-        const hash = keccak256(fileBytes);
+        const hash = '0x' + keccak256(fileBytes);
         console.log(`Keccak256 hash: ${hash}`);
         return { hash: hash, error: null };
     } catch (error) {

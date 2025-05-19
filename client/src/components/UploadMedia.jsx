@@ -58,20 +58,21 @@ export default function UploadMedia({ classNames }) {
 
             try {
                 const response = await uploadToIPFS(file);
-                console.log(response);
+                // console.log(response);
                 if (response.error != null) {
                     throw new Error(response.error);
                 }
                 setIpfsURI(response.ipfsUrl);
+                console.log(ipfsURI,"-- A --", response.ipfsUrl);
 
                 const res = await fetchAndHash(file);
                 console.log(res);
                 if (res.error != null) {
                     throw new Error(res.error);
                 }
-                setFileHash('0x' + res.hash);
+                setFileHash(res.hash);
                 // digitally sign the hash and add it to the metadata
-                IssueCredential(studentAddress, ipfsURI, fileHash, title)
+                await IssueCredential(studentAddress, response.ipfsUrl, res.hash, title)
 
 
                 setSuccess(true);

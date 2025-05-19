@@ -8,6 +8,7 @@ import (
 	"api/pkg/utils"
 	"errors"
 	"fmt"
+
 	"gorm.io/gorm"
 
 	"github.com/ethereum/go-ethereum/log"
@@ -35,8 +36,10 @@ func CreateRequest(c *gin.Context) {
 		RecipientWallet: walletAddress,
 		Status:          models.Pending,
 		ExpiryTimestamp: time.Now().Add(time.Duration(input.ExpiryMinutes) * time.Minute),
+		Description:     input.Description,
 	}
 
+	fmt.Println("Request: ", request)
 	request, err := utils.CreateRequestEntry(initializers.DB, request)
 
 	if err != nil {
@@ -54,7 +57,9 @@ func RespondRequest(c *gin.Context) {
 	// Get student's wallet address from header
 	walletAddress := c.GetHeader("Wallet-Address")
 	var input repository.RespondRequestInput
-
+	//bodyBytes, _ := c.GetRawData()
+	//fmt.Println("Request Body:", string(bodyBytes))
+	//c.Request.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
 	// Bind input JSON payload
 	if err := c.ShouldBindJSON(&input); err != nil {
 		log.Error("Binding error: ", err)
@@ -191,27 +196,13 @@ func GetRequest(c *gin.Context) {
 	// Get wallet address from headers
 	walletAddress := c.GetHeader("Wallet-Address")
 	requestID := c.Param("request_id")
-
-	// Parse JSON input to get wallet type (student_wallet or recipient_wallet)
-	var input repository.GetWalletType
-	if err := c.ShouldBindJSON(&input); err != nil {
-		log.Error("Invalid wallet type binding: ", err)
-		panic(customErrors.ErrInvalidWalletType)
-		return
-	}
-
-	// Optional: validate wallet type if needed
-	if err := input.Validate(); err != nil {
-		log.Error("Wallet type validation failed: ", err)
-		panic(err)
-		return
-	}
+	walletType := c.Param("wallet_type")
 
 	// Ensure walletType is either "student_wallet" or "recipient_wallet"
 	var request models.Request
 	var err error
 
-	switch input.WalletType {
+	switch repository.WalletTypeEnum(walletType) {
 	case repository.StudentWallet:
 		err = initializers.DB.
 			Where("id = ? AND student_wallet = ?", requestID, walletAddress).
@@ -239,6 +230,7 @@ func GetRequest(c *gin.Context) {
 		"recipient_wallet": request.RecipientWallet,
 		"student_wallet":   request.StudentWallet,
 		"expiry_timestamp": request.ExpiryTimestamp,
+		"description":      request.Description,
 	}
 
 	// Add reason or transcripts depending on status
@@ -252,11 +244,22 @@ func GetRequest(c *gin.Context) {
 			panic(customErrors.ErrInternalServer)
 			return
 		}
+
 		var transcriptList []gin.H
 		for _, t := range transcripts {
+			var transcript models.Transcript
+			if err := initializers.DB.
+				Where("transcript_id = ?", t.TranscriptID).
+				First(&transcript).Error; err != nil {
+				//log.Warnf("Transcript not found for ID %s: %v", t.TranscriptID, err)
+				continue // Skip this transcript if not found
+			}
+
 			transcriptList = append(transcriptList, gin.H{
-				"request_id":    t.RequestID,
-				"transcript_id": t.TranscriptID,
+				"request_id":        t.RequestID,
+				"transcript_id":     t.TranscriptID,
+				"ipfs_uri_metadata": transcript.IPFSURIMetadata,
+				"ipfs_uri_file":     transcript.IPFSURIMediaHash,
 			})
 		}
 		response["transcripts"] = transcriptList
@@ -269,17 +272,85 @@ func GetRequest(c *gin.Context) {
 }
 
 func GetRequests(c *gin.Context) {
+	// Get wallet address from headers
 	walletAddress := c.GetHeader("Wallet-Address")
-	var input repository.GetWalletType
-	if err := c.ShouldBindJSON(&input); err != nil {
-		log.Error("Binding error: ", err)
-		panic(customErrors.ErrInsufficientData)
+	walletType := c.Param("wallet_type")
+	// Parse JSON input to get wallet type (student_wallet or recipient_wallet)
+	// var input repository.GetWalletType
+	// if err := c.ShouldBindJSON(&input); err != nil {
+	// 	log.Error("Invalid wallet type binding: ", err)
+	// 	panic(customErrors.ErrInvalidWalletType)
+	// 	return
+	// }
+
+	// if err := input.Validate(); err != nil {
+	// 	log.Error("Wallet type validation failed: ", err)
+	// 	panic(err)
+	// 	return
+	// }
+
+	// Fetch all matching requests based on wallet type
+	var requests []models.Request
+	var err error
+
+	switch repository.WalletTypeEnum(walletType) {
+	case repository.StudentWallet:
+		err = initializers.DB.
+			Where("student_wallet = ?", walletAddress).
+			Find(&requests).Error
+	case repository.RecipientWallet:
+		err = initializers.DB.
+			Where("recipient_wallet = ?", walletAddress).
+			Find(&requests).Error
+	default:
+		log.Error("Invalid wallet type used in query")
+		panic(customErrors.ErrInvalidWalletType)
 		return
 	}
-	var requests []models.Request
-	if err := initializers.DB.Find(&requests, fmt.Sprintf("%v = ?", input.WalletType), walletAddress).Error; err != nil {
-		log.Error("Failed to get requests: ", err)
+
+	if err != nil {
+		log.Error("Failed to fetch requests: ", err)
 		panic(customErrors.ErrInternalServer)
 		return
 	}
+
+	// Build the response
+	var responseList []gin.H
+	for _, request := range requests {
+		response := gin.H{
+			"request_id":       request.ID,
+			"status":           request.Status,
+			"recipient_wallet": request.RecipientWallet,
+			"student_wallet":   request.StudentWallet,
+			"expiry_timestamp": request.ExpiryTimestamp,
+			"description":      request.Description,
+		}
+
+		// Include extra data based on request status
+		switch request.Status {
+		case models.Approved:
+			var transcripts []models.RequestTranscript
+			if err := initializers.DB.
+				Where("request_id = ?", request.ID).
+				Find(&transcripts).Error; err != nil {
+				log.Error("Failed to fetch transcripts: ", err)
+				panic(customErrors.ErrInternalServer)
+				return
+			}
+			var transcriptList []gin.H
+			for _, t := range transcripts {
+				transcriptList = append(transcriptList, gin.H{
+					"request_id":    t.RequestID,
+					"transcript_id": t.TranscriptID,
+				})
+			}
+			response["transcripts"] = transcriptList
+		case models.Denied:
+			response["reason"] = request.Reason
+		}
+
+		responseList = append(responseList, response)
+	}
+
+	c.JSON(http.StatusOK, gin.H{"requests": responseList})
 }

@@ -16,6 +16,7 @@ import Admin from "./pages/Admin/Admin"
 import Moderator from "./pages/Moderator/Moderator"
 import Institution from "./pages/Institution/Institution"
 import User from "./pages/User/User"
+import Request from './pages/Request/Request';
 import FetchRecords from './components/FetchRecords';
 
 
@@ -73,6 +74,9 @@ function App() {
 
                   <Route>
                     <Route path="/user" element={<User />} />
+                  </Route>
+                  <Route>
+                    <Route path="/requests" element={<Request />} />
                   </Route>
 
                   <Route path="*" element={<Navigate to="/" replace />} />

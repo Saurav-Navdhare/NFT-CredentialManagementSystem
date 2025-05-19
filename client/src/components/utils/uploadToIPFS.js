@@ -9,7 +9,7 @@ const uploadToIPFS = async (file) => {
     try {
         const formData = new FormData();
         formData.append("file", file);
-
+        console.log(`${config.IPFS_GATEWAY_URI}/api/v0/add`)
         const response = await axios.post(`${config.IPFS_GATEWAY_URI}/api/v0/add`, formData, {
             headers: {
                 "Content-Type": "multipart/form-data",

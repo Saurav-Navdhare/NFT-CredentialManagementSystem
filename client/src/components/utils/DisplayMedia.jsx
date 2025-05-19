@@ -1,43 +1,35 @@
 import { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 
-
 function DisplayMedia({ url, className = "" }) {
     const [mediaType, setMediaType] = useState(null);
-
-    DisplayMedia.propTypes = {
-        className: PropTypes.string,
-        url: PropTypes.string.isRequired,
-    };
-
+    const [finalUrl, setFinalUrl] = useState(url);
     useEffect(() => {
         const fetchMediaType = async () => {
             try {
+                let contentType = null;
+
                 if (url.startsWith('blob:')) {
-                    // Handle Blob URL
                     const response = await fetch(url);
                     const blob = await response.blob();
-                    const contentType = blob.type;
-
-                    if (contentType.includes('image')) {
-                        setMediaType('image');
-                    } else if (contentType === 'application/pdf') {
-                        setMediaType('pdf');
-                    } else {
-                        setMediaType('unsupported');
-                    }
+                    contentType = blob.type;
                 } else {
-                    // Handle regular URL
-                    const response = await fetch(url, { method: 'HEAD' });
-                    const contentType = response.headers.get('Content-Type');
-
-                    if (contentType.includes('image')) {
-                        setMediaType('image');
-                    } else if (contentType === 'application/pdf') {
-                        setMediaType('pdf');
-                    } else {
-                        setMediaType('unsupported');
+                    // Fetch HEAD to follow redirects and get final URL
+                    let response = await fetch(url, { method: 'HEAD', redirect: 'follow' });
+                    if (!response.ok && response.status === 405) {
+                        // Some servers don't support HEAD, fallback to GET
+                        response = await fetch(url, { method: 'GET', redirect: 'follow' });
                     }
+                    setFinalUrl(response.url);
+                    contentType = response.headers.get('Content-Type');
+                }
+
+                if (contentType && contentType.includes('image')) {
+                    setMediaType('image');
+                } else if (contentType === 'application/pdf') {
+                    setMediaType('pdf');
+                } else {
+                    setMediaType('unsupported');
                 }
             } catch (error) {
                 console.error('Error fetching media type:', error);
@@ -50,11 +42,16 @@ function DisplayMedia({ url, className = "" }) {
 
     return (
         <div className={className}>
-            {mediaType === 'image' && <img src={url} alt="media" style={{ maxWidth: '500px', maxHeight: '600px' }} />}
-            {mediaType === 'pdf' && <embed src={url} type="application/pdf" width="500px" height="600px" />}
+            {mediaType === 'image' && <img src={`${finalUrl}`} alt="media" style={{ maxWidth: '500px', maxHeight: '600px' }} />}
+            {mediaType === 'pdf' && <embed src={`${finalUrl}`} type="application/pdf" width="500px" height="600px" />}
             {mediaType === 'unsupported' && <div>Unsupported media type</div>}
         </div>
     );
 }
+
+DisplayMedia.propTypes = {
+    className: PropTypes.string,
+    url: PropTypes.string.isRequired,
+};
 
 export default DisplayMedia;

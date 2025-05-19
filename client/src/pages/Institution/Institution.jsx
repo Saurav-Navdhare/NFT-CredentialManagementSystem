@@ -6,6 +6,8 @@ import {
 import CloseIcon from "@mui/icons-material/Close";
 import UploadMedia from "../../components/UploadMedia";
 import FetchRecords from "../../components/FetchRecords"; // Assuming FetchRecords is in the components folder
+import { FetchCredentialByTokenId } from "../../services/ContractInteraction";
+import CredentialInfo from "../../components/utils/CredentialInfo"; // Adjust the import path as necessary
 
 const Institution = () => {
     const [open, setOpen] = useState(false);
@@ -13,6 +15,8 @@ const Institution = () => {
     const [credential, setCredential] = useState(null);
     const [error, setError] = useState("");
     const [recordsDialogOpen, setRecordsDialogOpen] = useState(false); // Manage dialog state
+
+    const [detailDialogOpen, setDetailDialogOpen] = useState(false); // For detail view dialog
 
     // Open & Close Dialog
     const handleOpen = () => setOpen(true);
@@ -27,39 +31,18 @@ const Institution = () => {
             if (!tokenId) throw new Error("Token ID is required");
 
             // Simulated API call
-            const response = await fetch(`/api/getCredential?tokenId=${tokenId}`);
-            const data = await response.json();
-
-            if (!data.success) throw new Error(data.message || "Credential not found");
-
-            setCredential(data.credential);
-            setError("");
+            const response = await FetchCredentialByTokenId(tokenId, "institute");
+            if (response == null) {
+                setError("Credential not found Or you are not signer of this credential");
+                return;
+            } else {
+                setCredential(response);
+                setDetailDialogOpen(true); // Open detail dialog
+                setError("");
+            }
         } catch (err) {
             setError(err.message);
             setCredential(null);
-        }
-    };
-
-    // Revoke Credential (Replace with actual API call)
-    const revokeCredential = async () => {
-        try {
-            if (!credential) throw new Error("No credential fetched");
-
-            // Simulated API call
-            const response = await fetch(`/api/revokeCredential`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ tokenId }),
-            });
-
-            const data = await response.json();
-            if (!data.success) throw new Error(data.message || "Failed to revoke credential");
-
-            setCredential(null);
-            setError("");
-            alert("Credential revoked successfully!");
-        } catch (err) {
-            setError(err.message);
         }
     };
 
@@ -135,21 +118,13 @@ const Institution = () => {
                 >
                     Fetch Credential
                 </Button>
-
-                {credential && (
-                    <Box sx={{ textAlign: "center", marginBottom: 2 }}>
-                        <Typography variant="body1" sx={{ color: "text.primary" }}>Credential Details:</Typography>
-                        <Typography variant="body2" sx={{ color: "secondary.dark" }}>{JSON.stringify(credential)}</Typography>
-
-                        <Button
-                            variant="contained"
-                            color="error"
-                            onClick={revokeCredential}
-                            sx={{ marginTop: 2 }}
-                        >
-                            Revoke Credential
-                        </Button>
-                    </Box>
+                
+                {detailDialogOpen && (
+                    <CredentialInfo
+                        detailDialogOpen={detailDialogOpen}
+                        setDetailDialogOpen={setDetailDialogOpen}
+                        credential={credential}
+                    />
                 )}
 
                 {error && <Typography color="error">{error}</Typography>}

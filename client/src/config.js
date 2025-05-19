@@ -5,7 +5,8 @@ const config = {
     IPFS_GATEWAY_URI: import.meta.env.VITE_IPFS_GATEWAY_URI,
     IPFS_HTTP_URI: import.meta.env.VITE_IPFS_HTTP_URI,
     BLOCKCHAIN_PROVIDER: import.meta.env.VITE_BLOCKCHAIN_PROVIDER,
-    CONTRACT_ADDRESS: import.meta.env.VITE_CONTRACT_ADDRESS
+    CONTRACT_ADDRESS: import.meta.env.VITE_CONTRACT_ADDRESS,
+    BACKEND_URL: import.meta.env.VITE_BACKEND_URL,
 };
 
 export default config;

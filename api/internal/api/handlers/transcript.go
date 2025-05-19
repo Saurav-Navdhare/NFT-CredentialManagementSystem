@@ -6,9 +6,10 @@ import (
 	"api/internal/models"
 	"api/internal/repository"
 	"api/pkg/utils"
+	"net/http"
+
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/gin-gonic/gin"
-	"net/http"
 )
 
 // Transcript represents a student's transcript stored on IPFS.
@@ -40,8 +41,8 @@ func AddTranscript(c *gin.Context) {
 
 	transcript, err := utils.CreateTranscriptEntry(initializers.DB, transcript)
 	if err != nil {
-		log.Error("Failed to create transcript: ", err)
-		panic(customErrors.ErrUnprocessableEntity)
+		log.Error("Failed to create transcript: ", err) // <-- fixed
+		panic(customErrors.ErrRequestNotFound)          // or proper mapping of DB error
 		return
 	}
 

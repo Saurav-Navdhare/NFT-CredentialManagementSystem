@@ -233,36 +233,6 @@ contract NFTCMS is
         );
     }
 
-    // function getOwnedCredentials() 
-    //     public 
-    //     view 
-    //     returns (uint256[] memory) {
-    //     uint256 balance = balanceOf(msg.sender); // Number of tokens owned by the address
-    //     uint256[] memory ownedTokens = new uint256[](balance);
-
-    //     for (uint256 i = 0; i < balance; i++) {
-    //         ownedTokens[i] = tokenOfOwnerByIndex(msg.sender, i);
-    //     }
-
-    //     return ownedTokens;
-    // }
-
-    // function getCredentialsIssuedByInstitution() 
-    //     public 
-    //     view
-    //     onlyInstitution
-    //     returns (uint256[] memory) {
-    //         uint256[] memory institutionCredentials = new uint256[](getCurrentTokenId());
-    //         uint256 count = 0;
-    //         for (uint256 i = 1; i <= getCurrentTokenId(); i++) {
-    //             if(credentials[i].signer == msg.sender){      // as tokenID starts from 1
-    //                 institutionCredentials[count] = i;
-    //                 count++;
-    //             }
-    //         }
-    //         return institutionCredentials;
-    // }
-
     function fetchRole()
         external
         view

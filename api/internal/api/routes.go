@@ -19,8 +19,8 @@ func SetupRoutes(router *gin.Engine) {
 			sessionGroup := requestGroup.Group("/")
 			{
 				sessionGroup.Use(middleware.SessionMiddleware())
-				sessionGroup.GET("/", handlers.GetRequests)
-				sessionGroup.GET("/:request_id", handlers.GetRequest)
+				sessionGroup.GET("/:wallet_type", handlers.GetRequests)
+				sessionGroup.GET("/:wallet_type/:request_id", handlers.GetRequest)
 			}
 			digitalSignatureGroup := requestGroup.Group("/")
 			{
